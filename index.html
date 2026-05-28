@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>birdhau5radio</title>
+<title>Softlaunch Stream</title>
 <style>
   :root {
     --bg: #0f0f0f;
@@ -224,7 +224,7 @@
     <span id="bitrateDisplay"></span>
   </div>
 
-  <div class="stream-title" id="streamName">birdhau5radio</div>
+  <div class="stream-title">Softlaunch Stream</div>
   <div class="stream-subtitle" id="streamDesc">Loading...</div>
 
   <div class="now-playing">
@@ -262,7 +262,7 @@
   </div>
 
   <div class="footer">
-    Powered by <a href="https://birdhau5radio.org" target="_blank">birdhau5radio.org</a>
+    <a href="https://birdhau5radio.org" target="_blank">birdhau5radio.org</a>
   </div>
 </div>
 
@@ -384,9 +384,6 @@ async function pollStatus() {
     const data = await res.json();
     const src = data.icestats.source;
     if (!src) return;
-
-    const name = src.server_name || 'birdhau5radio';
-    streamName.textContent = name;
 
     const desc = src.server_description || '';
     streamDesc.textContent = desc;
