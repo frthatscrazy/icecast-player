@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>birdhau5radio</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1e;
+    --surface2: #25252b;
+    --text: #e8e8ed;
+    --text2: #888899;
+    --accent: #6c5ce7;
+    --accent2: #a29bfe;
+    --green: #00b894;
+    --red: #e17055;
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .player {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  .status-dot.connected { background: var(--green); }
+  .status-dot.disconnected { background: var(--red); }
+  .status-dot.connecting { background: #fdcb6e; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .status-left { display: flex; align-items: center; }
+  .stream-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .stream-subtitle {
+    font-size: 14px;
+    color: var(--text2);
+    margin-bottom: 20px;
+  }
+  .now-playing {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    min-height: 48px;
+  }
+  .now-playing .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text2);
+    margin-bottom: 4px;
+  }
+  .now-playing .track {
+    font-size: 16px;
+    font-weight: 600;
+    word-break: break-word;
+  }
+  .now-playing .no-track { color: var(--text2); font-style: italic; }
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .play-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+  .play-btn:hover { transform: scale(1.05); background: var(--accent2); }
+  .play-btn:active { transform: scale(0.95); }
+  .play-btn.playing { background: var(--green); }
+  .volume-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .volume-wrap span { font-size: 13px; color: var(--text2); width: 20px; text-align: center; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-box {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-box .num {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .stat-box .lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+  .chart-wrap {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+  }
+  .chart-wrap .lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .chart-wrap canvas {
+    width: 100%;
+    height: 60px;
+    display: block;
+  }
+  .history {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+  .history .lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .history::-webkit-scrollbar { width: 4px; }
+  .history::-webkit-scrollbar-track { background: transparent; }
+  .history::-webkit-scrollbar-thumb { background: var(--text2); border-radius: 2px; }
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 13px;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-item .time { color: var(--text2); white-space: nowrap; flex-shrink: 0; }
+  .history-item .name { word-break: break-word; }
+  .history-empty { color: var(--text2); font-size: 13px; font-style: italic; }
+  .footer {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="player">
+  <div class="status-bar">
+    <div class="status-left">
+      <span class="status-dot disconnected" id="statusDot"></span>
+      <span id="statusText">Disconnected</span>
+    </div>
+    <span id="bitrateDisplay"></span>
+  </div>
+
+  <div class="stream-title" id="streamName">birdhau5radio</div>
+  <div class="stream-subtitle" id="streamDesc">Loading...</div>
+
+  <div class="now-playing">
+    <div class="label">Now Playing</div>
+    <div class="track" id="nowPlaying"><span class="no-track">Waiting for stream...</span></div>
+  </div>
+
+  <div class="controls">
+    <button class="play-btn" id="playBtn" aria-label="Play">&#9654;</button>
+    <div class="volume-wrap">
+      <span>&#128264;</span>
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8">
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-box">
+      <div class="num" id="listenerCount">0</div>
+      <div class="lbl">Listeners</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="peakCount">0</div>
+      <div class="lbl">Peak</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="lbl">Listener Activity (last 5 min)</div>
+    <canvas id="listenerChart"></canvas>
+  </div>
+
+  <div class="history">
+    <div class="lbl">Track History</div>
+    <div id="historyList"><div class="history-empty">No tracks yet</div></div>
+  </div>
+
+  <div class="footer">
+    Powered by <a href="https://birdhau5radio.org" target="_blank">birdhau5radio.org</a>
+  </div>
+</div>
+
+<script>
+const STREAM_URL = 'https://birdhau5radio.org/stream';
+const STATUS_URL = 'https://birdhau5radio.org/status-json.xsl';
+
+const audio = new Audio();
+const playBtn = document.getElementById('playBtn');
+const volumeSlider = document.getElementById('volumeSlider');
+const statusDot = document.getElementById('statusDot');
+const statusText = document.getElementById('statusText');
+const streamName = document.getElementById('streamName');
+const streamDesc = document.getElementById('streamDesc');
+const nowPlayingEl = document.getElementById('nowPlaying');
+const listenerCount = document.getElementById('listenerCount');
+const peakCount = document.getElementById('peakCount');
+const bitrateDisplay = document.getElementById('bitrateDisplay');
+const historyList = document.getElementById('historyList');
+const canvas = document.getElementById('listenerChart');
+const ctx = canvas.getContext('2d');
+
+audio.preload = 'none';
+audio.volume = 0.8;
+
+let isPlaying = false;
+let pollInterval = null;
+let listenerHistory = [];
+let lastTitle = '';
+let trackHistory = [];
+const MAX_HISTORY_POINTS = 60;
+
+function setStatus(state) {
+  statusDot.className = 'status-dot ' + state;
+  if (state === 'connected') statusText.textContent = 'Live';
+  else if (state === 'connecting') statusText.textContent = 'Connecting...';
+  else statusText.textContent = 'Disconnected';
+}
+
+function formatTime(d) {
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function drawChart() {
+  const w = canvas.parentElement.clientWidth - 24;
+  const h = 60;
+  canvas.width = w * window.devicePixelRatio;
+  canvas.height = h * window.devicePixelRatio;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  ctx.clearRect(0, 0, w, h);
+  if (listenerHistory.length < 2) {
+    ctx.fillStyle = '#555566';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Waiting for data...', w / 2, h / 2 + 4);
+    return;
+  }
+
+  const max = Math.max(...listenerHistory, 1);
+  const min = Math.min(...listenerHistory);
+  const range = Math.max(max - min, 1);
+  const step = w / (listenerHistory.length - 1);
+
+  ctx.beginPath();
+  listenerHistory.forEach((v, i) => {
+    const x = i * step;
+    const y = h - ((v - min) / range) * (h - 8) - 4;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = '#6c5ce7';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.lineTo(w, h);
+  ctx.lineTo(0, h);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, 'rgba(108,92,231,0.3)');
+  grad.addColorStop(1, 'rgba(108,92,231,0.02)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+}
+
+function addHistoryPoint(count) {
+  listenerHistory.push(count);
+  if (listenerHistory.length > MAX_HISTORY_POINTS) listenerHistory.shift();
+  drawChart();
+}
+
+function addTrackEntry(title) {
+  const now = new Date();
+  trackHistory.unshift({ time: now, title: title });
+  if (trackHistory.length > 50) trackHistory.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  if (trackHistory.length === 0) {
+    historyList.innerHTML = '<div class="history-empty">No tracks yet</div>';
+    return;
+  }
+  historyList.innerHTML = trackHistory.map(t =>
+    `<div class="history-item"><span class="time">${formatTime(t.time)}</span><span class="name">${escapeHtml(t.title)}</span></div>`
+  ).join('');
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function pollStatus() {
+  try {
+    const res = await fetch(STATUS_URL);
+    const data = await res.json();
+    const src = data.icestats.source;
+    if (!src) return;
+
+    const name = src.server_name || 'birdhau5radio';
+    streamName.textContent = name;
+
+    const desc = src.server_description || '';
+    streamDesc.textContent = desc;
+
+    const listeners = src.listeners || 0;
+    listenerCount.textContent = listeners;
+
+    const peak = src.listener_peak || 0;
+    peakCount.textContent = peak;
+
+    const bitrate = src.bitrate || src['ice-bitrate'];
+    bitrateDisplay.textContent = bitrate ? bitrate + ' kbps' : '';
+
+    addHistoryPoint(listeners);
+
+    const title = src.title || src.server_name || '';
+    if (title && title !== lastTitle) {
+      lastTitle = title;
+      nowPlayingEl.textContent = title;
+      addTrackEntry(title);
+    } else if (!title && !lastTitle) {
+      nowPlayingEl.innerHTML = '<span class="no-track">Live stream</span>';
+    }
+
+    if (statusDot.className.includes('disconnected')) {
+      setStatus('connected');
+    }
+  } catch (e) {
+    setStatus('disconnected');
+  }
+}
+
+function togglePlay() {
+  if (audio.paused) {
+    audio.src = STREAM_URL;
+    audio.play().then(() => {
+      isPlaying = true;
+      playBtn.innerHTML = '&#9646;&#9646;';
+      playBtn.classList.add('playing');
+      setStatus('connected');
+      if (!pollInterval) {
+        pollStatus();
+        pollInterval = setInterval(pollStatus, 5000);
+      }
+    }).catch(() => {
+      setStatus('disconnected');
+    });
+  } else {
+    audio.pause();
+    audio.src = '';
+    isPlaying = false;
+    playBtn.innerHTML = '&#9654;';
+    playBtn.classList.remove('playing');
+    setStatus('disconnected');
+  }
+}
+
+audio.addEventListener('waiting', () => setStatus('connecting'));
+audio.addEventListener('stalled', () => setStatus('connecting'));
+audio.addEventListener('error', () => {
+  setStatus('disconnected');
+  isPlaying = false;
+  playBtn.innerHTML = '&#9654;';
+  playBtn.classList.remove('playing');
+});
+
+volumeSlider.addEventListener('input', () => {
+  audio.volume = volumeSlider.value;
+});
+
+playBtn.addEventListener('click', togglePlay);
+
+window.addEventListener('resize', drawChart);
+
+setStatus('disconnected');
+pollStatus();
+pollInterval = setInterval(pollStatus, 5000);
+</script>
+</body>
+</html>
