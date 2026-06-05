@@ -576,6 +576,14 @@ function escapeHtml(s) {
   return d.innerHTML;
 }
 
+function fixEncoding(s) {
+  try {
+    return decodeURIComponent(escape(s));
+  } catch(e) {
+    return s;
+  }
+}
+
 async function pollStatus() {
   try {
     const res = await fetch(STATUS_URL);
@@ -594,7 +602,8 @@ async function pollStatus() {
 
     addHistoryPoint(listeners);
 
-    const title = src.title || '';
+    const raw = src.title || '';
+    const title = fixEncoding(raw);
     if (title && title !== lastTitle) {
       lastTitle = title;
       buildMarquee(title);
