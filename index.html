@@ -461,17 +461,17 @@ function setStatus(active) {
 function buildMarquee(forceTitle) {
   const title = forceTitle || lastTitle;
   let html = '';
-  for (let i = 0; i < 3; i++) {
-    messages.forEach(msg => {
-      const font = fontClasses[Math.floor(Math.random() * fontClasses.length)];
-      html += `<span class="segment ${font}">${msg}</span>`;
-    });
-  }
   if (title) {
     for (let n = 0; n < 5; n++) {
       const color = n % 2 === 0 ? '#fff' : '#00ff00';
       html += `<span class="segment font-terminal" style="color:${color}">NOW PLAYING: ${title}</span>`;
     }
+  }
+  for (let i = 0; i < 3; i++) {
+    messages.forEach(msg => {
+      const font = fontClasses[Math.floor(Math.random() * fontClasses.length)];
+      html += `<span class="segment ${font}">${msg}</span>`;
+    });
   }
   marqueeContainer.innerHTML = html;
 }
