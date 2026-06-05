@@ -609,6 +609,7 @@ async function pollStatus() {
       buildMarquee(title);
       addTrackEntry(title);
       updateMediaSession(title);
+      searchAlbumArt(title).then(art => { if (art) updateMediaSession(title, art); });
     } else if (!title && !lastTitle) {
       buildMarquee('');
       updateMediaSession('Live stream');
@@ -618,13 +619,32 @@ async function pollStatus() {
   }
 }
 
-function updateMediaSession(title) {
+const albumArtCache = {};
+
+async function searchAlbumArt(title) {
+  if (albumArtCache[title] !== undefined) return albumArtCache[title];
+  try {
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(title)}&media=music&limit=3&entity=song`);
+    const data = await res.json();
+    if (data.results && data.results.length > 0) {
+      const art = data.results[0].artworkUrl100;
+      const large = art.replace('100x100bb', '512x512bb');
+      albumArtCache[title] = large;
+      return large;
+    }
+  } catch (_) {}
+  albumArtCache[title] = null;
+  return null;
+}
+
+function updateMediaSession(title, artworkUrl) {
   if ('mediaSession' in navigator) {
+    const icon = 'https://birdhau5radio.org/pirate-logo.jpeg';
     navigator.mediaSession.metadata = new MediaMetadata({
       title: title || 'Live stream',
       artist: 'Pirate Radio',
       artwork: [
-        { src: 'https://birdhau5radio.org/pirate-logo.jpeg', sizes: '512x512', type: 'image/jpeg' }
+        { src: artworkUrl || icon, sizes: '512x512', type: 'image/jpeg' }
       ]
     });
   }
