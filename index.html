@@ -468,8 +468,9 @@ function buildMarquee(forceTitle) {
     });
   }
   if (title) {
-    html += `<span class="segment font-terminal">NOW PLAYING: ${title}</span>`;
-    html += `<span class="segment font-terminal" style="color:#00ff00">NOW PLAYING: ${title}</span>`;
+    for (let n = 0; n < 8; n++) {
+      html += `<span class="segment font-terminal">NOW PLAYING: ${title}</span>`;
+    }
   }
   marqueeContainer.innerHTML = html;
 }
