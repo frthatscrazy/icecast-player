@@ -608,11 +608,25 @@ async function pollStatus() {
       lastTitle = title;
       buildMarquee(title);
       addTrackEntry(title);
+      updateMediaSession(title);
     } else if (!title && !lastTitle) {
       buildMarquee('');
+      updateMediaSession('Live stream');
     }
   } catch (e) {
     if (!isPlaying) setStatus(false);
+  }
+}
+
+function updateMediaSession(title) {
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: title || 'Live stream',
+      artist: 'Pirate Radio',
+      artwork: [
+        { src: 'https://birdhau5radio.org/pirate-logo.jpeg', sizes: '512x512', type: 'image/jpeg' }
+      ]
+    });
   }
 }
 
@@ -623,6 +637,8 @@ function toggleRadio() {
       isPlaying = true;
       setStatus(true);
       animateVisualizer();
+      buildMarquee('Live stream');
+      updateMediaSession('Live stream');
       if (!pollInterval) {
         pollStatus();
         pollInterval = setInterval(pollStatus, 5000);
@@ -638,6 +654,11 @@ function toggleRadio() {
     cancelAnimationFrame(vizFrame);
     document.querySelectorAll('.bar').forEach(b => b.style.height = '4px');
   }
+}
+
+if ('mediaSession' in navigator) {
+  navigator.mediaSession.setActionHandler('play', () => toggleRadio());
+  navigator.mediaSession.setActionHandler('pause', () => toggleRadio());
 }
 
 audio.addEventListener('waiting', () => statusText.textContent = 'CONNECTING...');
