@@ -3,248 +3,378 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Softlaunch Stream</title>
-<meta name="description" content="Live radio from birdhau5 — streaming 24/7.">
-<meta property="og:title" content="Softlaunch Stream">
-<meta property="og:description" content="Live radio from birdhau5 — streaming 24/7.">
+<title>PIRATE RADIO</title>
+<meta name="description" content="Unauthorized transmission. Listen while you can.">
+<meta property="og:title" content="PIRATE RADIO">
+<meta property="og:description" content="Unauthorized transmission. Listen while you can.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://birdhau5radio.org">
-<meta property="og:image" content="https://birdhau5radio.org/icecast.png">
+<meta property="og:image" content="https://birdhau5radio.org/pirate-logo.jpeg">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎧</text></svg>">
+<link rel="icon" href="https://birdhau5radio.org/pirate-logo.jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Press+Start+2P&family=Russo+One&family=VT323&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1e;
-    --surface2: #25252b;
-    --text: #e8e8ed;
-    --text2: #888899;
-    --accent: #6c5ce7;
-    --accent2: #a29bfe;
-    --green: #00b894;
-    --red: #e17055;
-    --radius: 12px;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
-  }
-  .player {
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 32px;
-    width: 100%;
-    max-width: 480px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
-  .status-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 8px;
-  }
-  .status-dot.connected { background: var(--green); }
-  .status-dot.disconnected { background: var(--red); }
-  .status-dot.connecting { background: #fdcb6e; animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-  .status-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    font-size: 13px;
-    color: var(--text2);
-  }
-  .status-left { display: flex; align-items: center; }
-  .stream-title {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-  .stream-subtitle {
-    font-size: 14px;
-    color: var(--text2);
-    margin-bottom: 20px;
-  }
-  .now-playing {
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-bottom: 20px;
-    min-height: 48px;
-  }
-  .now-playing .label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text2);
-    margin-bottom: 4px;
-  }
-  .now-playing .track {
-    font-size: 16px;
-    font-weight: 600;
-    word-break: break-word;
-  }
-  .now-playing .no-track { color: var(--text2); font-style: italic; }
-  .controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-  .play-btn {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: none;
-    background: var(--accent);
-    color: #fff;
-    font-size: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s, background 0.15s;
-    flex-shrink: 0;
-  }
-  .play-btn:hover { transform: scale(1.05); background: var(--accent2); }
-  .play-btn:active { transform: scale(0.95); }
-  .play-btn.playing { background: var(--green); }
-  .volume-wrap {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .volume-wrap span { font-size: 13px; color: var(--text2); width: 20px; text-align: center; }
-  input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    flex: 1;
-    height: 4px;
-    background: var(--surface2);
-    border-radius: 2px;
-    outline: none;
-  }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-  }
-  .stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .stat-box {
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 12px;
-    text-align: center;
-  }
-  .stat-box .num {
-    font-size: 24px;
-    font-weight: 700;
-  }
-  .stat-box .lbl {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text2);
-    margin-top: 2px;
-  }
-  .chart-wrap {
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 20px;
-  }
-  .chart-wrap .lbl {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text2);
-    margin-bottom: 8px;
-  }
-  .chart-wrap canvas {
-    width: 100%;
-    height: 60px;
-    display: block;
-  }
-  .history {
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 12px;
-    max-height: 160px;
-    overflow-y: auto;
-  }
-  .history .lbl {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text2);
-    margin-bottom: 8px;
-  }
-  .history::-webkit-scrollbar { width: 4px; }
-  .history::-webkit-scrollbar-track { background: transparent; }
-  .history::-webkit-scrollbar-thumb { background: var(--text2); border-radius: 2px; }
-  .history-item {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 6px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    font-size: 13px;
-  }
-  .history-item:last-child { border-bottom: none; }
-  .history-item .time { color: var(--text2); white-space: nowrap; flex-shrink: 0; }
-  .history-item .name { word-break: break-word; }
-  .history-empty { color: var(--text2); font-size: 13px; font-style: italic; }
-  .footer {
-    margin-top: 16px;
-    text-align: center;
-    font-size: 12px;
-    color: var(--text2);
-  }
-  .footer a { color: var(--accent); text-decoration: none; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'VT323', monospace;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.scanlines {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2) 100%);
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes flicker {
+  0% { opacity: 0.97; }
+  5% { opacity: 0.95; }
+  10% { opacity: 0.9; }
+  15% { opacity: 0.95; }
+  20% { opacity: 0.99; }
+  50% { opacity: 0.95; }
+  80% { opacity: 0.9; }
+  100% { opacity: 0.97; }
+}
+
+.crt-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
+  z-index: 9;
+  animation: flicker 0.15s infinite;
+}
+
+.container {
+  width: 85%;
+  max-width: 620px;
+  border: 2px solid #fff;
+  padding: 24px;
+  position: relative;
+  z-index: 5;
+  box-shadow: 0 0 15px rgba(255,255,255,0.2);
+  max-height: 98vh;
+  overflow-y: auto;
+}
+
+.container::-webkit-scrollbar { width: 4px; }
+.container::-webkit-scrollbar-track { background: #000; }
+.container::-webkit-scrollbar-thumb { background: #fff; border-radius: 2px; }
+
+h1 {
+  font-family: 'Russo One', sans-serif;
+  font-size: 2.8rem;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  text-align: center;
+  margin-bottom: 16px;
+  text-shadow: 2px 2px 0px #333;
+}
+
+.marquee-container {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  border-top: 1px dashed #fff;
+  border-bottom: 1px dashed #fff;
+  padding: 8px 0;
+  margin-bottom: 20px;
+  background: #0a0a0a;
+  font-size: 1.3rem;
+  line-height: 1.2;
+}
+
+.marquee-content {
+  display: inline-block;
+  padding-left: 100%;
+  animation: scroll-left 20s linear infinite;
+}
+
+.segment {
+  display: inline-block;
+  margin-right: 40px;
+  white-space: nowrap;
+}
+
+.font-pixel { font-family: 'Press Start 2P', cursive; font-size: 0.85em; }
+.font-gothic { font-family: 'Creepster', cursive; font-size: 1.2em; letter-spacing: 2px; }
+.font-tech { font-family: 'Russo One', sans-serif; font-size: 1.1em; }
+.font-terminal { font-family: 'VT323', monospace; font-size: 1.3em; }
+
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+.player-ui {
+  border: 1px solid #fff;
+  padding: 14px;
+  margin-bottom: 16px;
+  background: #050505;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-light {
+  display: inline-block;
+  width: 10px; height: 10px;
+  background: #333;
+  border-radius: 50%;
+}
+
+.status-light.active {
+  background: #00ff00;
+  box-shadow: 0 0 5px #00ff00;
+}
+
+#statusText {
+  font-size: 1.1rem;
+}
+
+#bitrateDisplay {
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+.visualizer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 50px;
+  margin-bottom: 12px;
+  gap: 2px;
+}
+
+.bar {
+  width: 9%;
+  background: #fff;
+  height: 4px;
+  transition: height 0.1s ease;
+  border-radius: 1px;
+}
+
+.volume-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.volume-wrap span {
+  font-size: 0.9rem;
+  opacity: 0.6;
+  width: 20px;
+  text-align: center;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 3px;
+  background: #333;
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+button {
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 10px 20px;
+  font-family: 'VT323', monospace;
+  font-size: 1.1rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+button:hover {
+  background: #fff;
+  color: #000;
+  box-shadow: 0 0 10px #fff;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.stat-box {
+  border: 1px solid #333;
+  padding: 10px;
+  text-align: center;
+  background: #050505;
+}
+
+.stat-box .num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-family: 'VT323', monospace;
+}
+
+.stat-box .lbl {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  margin-top: 2px;
+  font-family: 'VT323', monospace;
+}
+
+.chart-wrap {
+  border: 1px solid #333;
+  padding: 10px;
+  margin-bottom: 14px;
+  background: #050505;
+}
+
+.chart-wrap .lbl {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  margin-bottom: 8px;
+  font-family: 'VT323', monospace;
+}
+
+.chart-wrap canvas {
+  width: 100%;
+  height: 50px;
+  display: block;
+}
+
+.history {
+  border: 1px solid #333;
+  padding: 10px;
+  max-height: 140px;
+  overflow-y: auto;
+  background: #050505;
+}
+
+.history .lbl {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  margin-bottom: 6px;
+  font-family: 'VT323', monospace;
+}
+
+.history::-webkit-scrollbar { width: 4px; }
+.history::-webkit-scrollbar-track { background: transparent; }
+.history::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.9rem;
+}
+
+.history-item:last-child { border-bottom: none; }
+.history-item .time { opacity: 0.4; white-space: nowrap; flex-shrink: 0; }
+.history-item .name { word-break: break-word; }
+.history-empty { opacity: 0.4; font-size: 0.9rem; font-style: italic; }
+
+footer {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 0.75rem;
+  opacity: 0.5;
+  line-height: 1.4;
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 1.8rem; letter-spacing: 3px; }
+  .container { width: 95%; padding: 16px; }
+  .segment { margin-right: 20px; }
+  .marquee-container { font-size: 1rem; }
+}
 </style>
 </head>
 <body>
 
-<div class="player">
-  <div class="status-bar">
-    <div class="status-left">
-      <span class="status-dot disconnected" id="statusDot"></span>
-      <span id="statusText">Disconnected</span>
+<div class="scanlines"></div>
+<div class="crt-overlay"></div>
+
+<div class="container">
+  <h1>PIRATE RADIO</h1>
+
+  <div class="marquee-container">
+    <div class="marquee-content" id="marqueeText"></div>
+  </div>
+
+  <div class="player-ui">
+    <div class="status-row">
+      <div class="status-left">
+        <span id="statusLight" class="status-light"></span>
+        <span id="statusText">STANDBY</span>
+      </div>
+      <span id="bitrateDisplay"></span>
     </div>
-    <span id="bitrateDisplay"></span>
-  </div>
 
-  <div class="stream-title">Softlaunch Stream</div>
-  <div class="stream-subtitle" id="streamDesc">Loading...</div>
+    <div class="visualizer" id="visualizer"></div>
 
-  <div class="now-playing">
-    <div class="label">Now Playing</div>
-    <div class="track" id="nowPlaying"><span class="no-track">Waiting for stream...</span></div>
-  </div>
-
-  <div class="controls">
-    <button class="play-btn" id="playBtn" aria-label="Play">&#9654;</button>
     <div class="volume-wrap">
       <span>&#128264;</span>
       <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.8">
+    </div>
+
+    <div class="controls">
+      <button onclick="toggleRadio()">TUNE IN</button>
+      <button onclick="toggleRadio()">TUNE OUT</button>
     </div>
   </div>
 
@@ -260,7 +390,7 @@
   </div>
 
   <div class="chart-wrap">
-    <div class="lbl">Listener Activity (last 5 min)</div>
+    <div class="lbl">Listener Signal (last 5 min)</div>
     <canvas id="listenerChart"></canvas>
   </div>
 
@@ -269,9 +399,10 @@
     <div id="historyList"><div class="history-empty">No tracks yet</div></div>
   </div>
 
-  <div class="footer">
-    <a href="https://birdhau5radio.org" target="_blank">birdhau5radio.org</a>
-  </div>
+  <footer>
+    EST. 1999 // PROTON SECURE NETWORK //<br>
+    [UNAUTHORIZED TRANSMISSION]
+  </footer>
 </div>
 
 <script>
@@ -279,19 +410,18 @@ const STREAM_URL = 'https://birdhau5radio.org/stream';
 const STATUS_URL = 'https://birdhau5radio.org/status-json.xsl';
 
 const audio = new Audio();
-const playBtn = document.getElementById('playBtn');
 const volumeSlider = document.getElementById('volumeSlider');
-const statusDot = document.getElementById('statusDot');
+const statusLight = document.getElementById('statusLight');
 const statusText = document.getElementById('statusText');
-const streamName = document.getElementById('streamName');
-const streamDesc = document.getElementById('streamDesc');
-const nowPlayingEl = document.getElementById('nowPlaying');
+const bitrateDisplay = document.getElementById('bitrateDisplay');
+const nowPlayingEl = document.createElement('div');
 const listenerCount = document.getElementById('listenerCount');
 const peakCount = document.getElementById('peakCount');
-const bitrateDisplay = document.getElementById('bitrateDisplay');
 const historyList = document.getElementById('historyList');
 const canvas = document.getElementById('listenerChart');
 const ctx = canvas.getContext('2d');
+const marqueeContainer = document.getElementById('marqueeText');
+const visualizer = document.getElementById('visualizer');
 
 audio.preload = 'none';
 audio.volume = 0.8;
@@ -301,13 +431,71 @@ let pollInterval = null;
 let listenerHistory = [];
 let lastTitle = '';
 let trackHistory = [];
+let vizFrame = null;
 const MAX_HISTORY_POINTS = 60;
 
-function setStatus(state) {
-  statusDot.className = 'status-dot ' + state;
-  if (state === 'connected') statusText.textContent = 'Live';
-  else if (state === 'connecting') statusText.textContent = 'Connecting...';
-  else statusText.textContent = 'Disconnected';
+const messages = [
+  "UNAUTHORIZED TRANSMISSION",
+  "FREQUENCY LOCKED",
+  "NO COMMERCIALS",
+  "LISTENERS IN THE KNOW",
+  "WELCOME TO THE UNDERGROUND",
+  "SYSTEM OVERRIDE",
+  "SIGNAL STRENGTH: MAX"
+];
+
+const fontClasses = ['font-pixel', 'font-gothic', 'font-tech', 'font-terminal'];
+
+function setStatus(active) {
+  if (active) {
+    statusLight.className = 'status-light active';
+    statusText.textContent = 'TRANSMITTING...';
+    statusText.style.color = '#00ff00';
+  } else {
+    statusLight.className = 'status-light';
+    statusText.textContent = 'STANDBY';
+    statusText.style.color = '#fff';
+  }
+}
+
+function buildMarquee(forceTitle) {
+  const title = forceTitle || lastTitle;
+  let html = '';
+  for (let i = 0; i < 3; i++) {
+    messages.forEach(msg => {
+      const font = fontClasses[Math.floor(Math.random() * fontClasses.length)];
+      html += `<span class="segment ${font}">${msg}</span>`;
+    });
+  }
+  if (title) {
+    html += `<span class="segment font-terminal">NOW PLAYING: ${title}</span>`;
+    html += `<span class="segment font-terminal" style="color:#00ff00">NOW PLAYING: ${title}</span>`;
+  }
+  marqueeContainer.innerHTML = html;
+}
+
+function createBars() {
+  visualizer.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const bar = document.createElement('div');
+    bar.classList.add('bar');
+    visualizer.appendChild(bar);
+  }
+}
+
+function animateVisualizer() {
+  const bars = document.querySelectorAll('.bar');
+  bars.forEach(bar => {
+    if (isPlaying) {
+      const height = Math.floor(Math.random() * 85) + 10;
+      bar.style.height = `${height}%`;
+    } else {
+      bar.style.height = '4px';
+    }
+  });
+  if (isPlaying) {
+    vizFrame = requestAnimationFrame(animateVisualizer);
+  }
 }
 
 function formatTime(d) {
@@ -315,8 +503,8 @@ function formatTime(d) {
 }
 
 function drawChart() {
-  const w = canvas.parentElement.clientWidth - 24;
-  const h = 60;
+  const w = canvas.parentElement.clientWidth - 20;
+  const h = 50;
   canvas.width = w * window.devicePixelRatio;
   canvas.height = h * window.devicePixelRatio;
   canvas.style.width = w + 'px';
@@ -325,10 +513,10 @@ function drawChart() {
 
   ctx.clearRect(0, 0, w, h);
   if (listenerHistory.length < 2) {
-    ctx.fillStyle = '#555566';
-    ctx.font = '12px sans-serif';
+    ctx.fillStyle = '#444';
+    ctx.font = '11px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('Waiting for data...', w / 2, h / 2 + 4);
+    ctx.fillText('awaiting signal...', w / 2, h / 2 + 4);
     return;
   }
 
@@ -343,16 +531,16 @@ function drawChart() {
     const y = h - ((v - min) / range) * (h - 8) - 4;
     i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
   });
-  ctx.strokeStyle = '#6c5ce7';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
   ctx.lineTo(w, h);
   ctx.lineTo(0, h);
   ctx.closePath();
   const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, 'rgba(108,92,231,0.3)');
-  grad.addColorStop(1, 'rgba(108,92,231,0.02)');
+  grad.addColorStop(0, 'rgba(255,255,255,0.2)');
+  grad.addColorStop(1, 'rgba(255,255,255,0.01)');
   ctx.fillStyle = grad;
   ctx.fill();
 }
@@ -393,9 +581,6 @@ async function pollStatus() {
     const src = data.icestats.source;
     if (!src) return;
 
-    const desc = src.server_description || '';
-    streamDesc.textContent = desc;
-
     const listeners = src.listeners || 0;
     listenerCount.textContent = listeners;
 
@@ -407,66 +592,61 @@ async function pollStatus() {
 
     addHistoryPoint(listeners);
 
-    const title = src.title || src.server_name || '';
+    const title = src.title || '';
     if (title && title !== lastTitle) {
       lastTitle = title;
-      nowPlayingEl.textContent = title;
+      buildMarquee(title);
       addTrackEntry(title);
     } else if (!title && !lastTitle) {
-      nowPlayingEl.innerHTML = '<span class="no-track">Live stream</span>';
-    }
-
-    if (statusDot.className.includes('disconnected')) {
-      setStatus('connected');
+      buildMarquee('');
     }
   } catch (e) {
-    setStatus('disconnected');
+    if (!isPlaying) setStatus(false);
   }
 }
 
-function togglePlay() {
+function toggleRadio() {
   if (audio.paused) {
     audio.src = STREAM_URL;
     audio.play().then(() => {
       isPlaying = true;
-      playBtn.innerHTML = '&#9646;&#9646;';
-      playBtn.classList.add('playing');
-      setStatus('connected');
+      setStatus(true);
+      animateVisualizer();
       if (!pollInterval) {
         pollStatus();
         pollInterval = setInterval(pollStatus, 5000);
       }
     }).catch(() => {
-      setStatus('disconnected');
+      setStatus(false);
     });
   } else {
     audio.pause();
     audio.src = '';
     isPlaying = false;
-    playBtn.innerHTML = '&#9654;';
-    playBtn.classList.remove('playing');
-    setStatus('disconnected');
+    setStatus(false);
+    cancelAnimationFrame(vizFrame);
+    document.querySelectorAll('.bar').forEach(b => b.style.height = '4px');
   }
 }
 
-audio.addEventListener('waiting', () => setStatus('connecting'));
-audio.addEventListener('stalled', () => setStatus('connecting'));
+audio.addEventListener('waiting', () => statusText.textContent = 'CONNECTING...');
+audio.addEventListener('stalled', () => statusText.textContent = 'SIGNAL WEAK...');
 audio.addEventListener('error', () => {
-  setStatus('disconnected');
+  setStatus(false);
   isPlaying = false;
-  playBtn.innerHTML = '&#9654;';
-  playBtn.classList.remove('playing');
+  cancelAnimationFrame(vizFrame);
+  document.querySelectorAll('.bar').forEach(b => b.style.height = '4px');
 });
 
 volumeSlider.addEventListener('input', () => {
   audio.volume = volumeSlider.value;
 });
 
-playBtn.addEventListener('click', togglePlay);
-
 window.addEventListener('resize', drawChart);
 
-setStatus('disconnected');
+createBars();
+buildMarquee('');
+setStatus(false);
 pollStatus();
 pollInterval = setInterval(pollStatus, 5000);
 </script>
