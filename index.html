@@ -468,8 +468,10 @@ function buildMarquee(forceTitle) {
     });
   }
   if (title) {
-    html += `<span class="segment font-terminal">NOW PLAYING: ${title}</span>`;
-    html += `<span class="segment font-terminal" style="color:#00ff00">NOW PLAYING: ${title}</span>`;
+    for (let n = 0; n < 5; n++) {
+      const color = n % 2 === 0 ? '#fff' : '#00ff00';
+      html += `<span class="segment font-terminal" style="color:${color}">NOW PLAYING: ${title}</span>`;
+    }
   }
   marqueeContainer.innerHTML = html;
 }
