@@ -620,20 +620,40 @@ async function pollStatus() {
 }
 
 const albumArtCache = {};
+const UA = { headers: { 'User-Agent': 'PirateRadio/1.0 ( birdhau5radio.org )' } };
 
 async function searchAlbumArt(title) {
   if (albumArtCache[title] !== undefined) return albumArtCache[title];
+  albumArtCache[title] = null;
   try {
-    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(title)}&media=music&limit=3&entity=song`);
+    const res = await fetch(
+      `https://musicbrainz.org/ws/2/recording/?fmt=json&query=${encodeURIComponent(title)}&limit=3`,
+      UA
+    );
     const data = await res.json();
-    if (data.results && data.results.length > 0) {
-      const art = data.results[0].artworkUrl100;
-      const large = art.replace('100x100bb', '512x512bb');
-      albumArtCache[title] = large;
-      return large;
+    if (!data.recordings) return null;
+    for (const rec of data.recordings) {
+      if (!rec.releases) continue;
+      for (const rel of rec.releases) {
+        const rg = rel['release-group'];
+        const ids = [];
+        if (rg && rg.id) ids.push('release-group/' + rg.id);
+        if (rel.id) ids.push('release/' + rel.id);
+        for (const ep of ids) {
+          try {
+            const c = await fetch(`https://coverartarchive.org/${ep}`, UA);
+            if (!c.ok) continue;
+            const cd = await c.json();
+            if (!cd.images || !cd.images.length) continue;
+            const t = cd.images[0].thumbnails;
+            const url = t ? (t['1200'] || t.large || t.small || cd.images[0].image) : cd.images[0].image;
+            albumArtCache[title] = url;
+            return url;
+          } catch (_) {}
+        }
+      }
     }
   } catch (_) {}
-  albumArtCache[title] = null;
   return null;
 }
 
