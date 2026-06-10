@@ -364,6 +364,77 @@ button:active {
 .history-item .name { word-break: break-word; }
 .history-empty { opacity: 0.4; font-size: 0.9rem; font-style: italic; }
 
+.game-wrap {
+  border: 1px solid #333;
+  padding: 12px;
+  margin-top: 12px;
+  background: #050505;
+  text-align: center;
+}
+
+.game-wrap .lbl {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  margin-bottom: 8px;
+  font-family: 'VT323', monospace;
+}
+
+.game-turn {
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  min-height: 1.2em;
+}
+
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.game-cell {
+  aspect-ratio: 1;
+  background: #0d0d0d;
+  border: 1px solid #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.game-cell:hover { background: #151515; border-color: #444; }
+.game-cell.x { color: #f44; text-shadow: 0 0 8px #f44; cursor: default; }
+.game-cell.o { color: #4f4; text-shadow: 0 0 8px #4f4; cursor: default; }
+.game-cell.win { background: #1a0a0a; border-color: #f44; box-shadow: 0 0 10px rgba(255,68,68,0.3); }
+.game-cell.win.o { background: #0a1a0a; border-color: #4f4; box-shadow: 0 0 10px rgba(68,255,68,0.3); }
+
+.game-result {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  min-height: 1.2em;
+}
+
+.game-btn {
+  background: #000;
+  color: #fff;
+  border: 1px solid #333;
+  padding: 5px 16px;
+  font-family: 'VT323', monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-top: 6px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.game-btn:hover { background: #fff; color: #000; }
+
 footer {
   margin-top: 14px;
   text-align: center;
@@ -440,6 +511,24 @@ footer {
     <div id="historyList"><div class="history-empty">No tracks yet</div></div>
   </div>
 
+  <div class="game-wrap">
+    <div class="lbl">&#x2620; Pirate vs Signal &#x2622;</div>
+    <div class="game-turn" id="gameTurn">Your move, Captain</div>
+    <div class="game-board" id="gameBoard">
+      <div class="game-cell" data-i="0"></div>
+      <div class="game-cell" data-i="1"></div>
+      <div class="game-cell" data-i="2"></div>
+      <div class="game-cell" data-i="3"></div>
+      <div class="game-cell" data-i="4"></div>
+      <div class="game-cell" data-i="5"></div>
+      <div class="game-cell" data-i="6"></div>
+      <div class="game-cell" data-i="7"></div>
+      <div class="game-cell" data-i="8"></div>
+    </div>
+    <div class="game-result" id="gameResult"></div>
+    <button class="game-btn" onclick="resetGame()">New Game</button>
+  </div>
+
   <footer>
     EST. 1999 // PROTON SECURE NETWORK //<br>
     [UNAUTHORIZED TRANSMISSION]
@@ -477,6 +566,59 @@ let lastTitle = '';
 let trackHistory = [];
 let vizFrame = null;
 const MAX_HISTORY_POINTS = 60;
+
+let gameBoard = ['', '', '', '', '', '', '', '', ''];
+let gameTurn = 'X';
+let gameOver = false;
+
+const gameCells = document.querySelectorAll('.game-cell');
+const gameTurnEl = document.getElementById('gameTurn');
+const gameResultEl = document.getElementById('gameResult');
+
+gameCells.forEach(cell => cell.addEventListener('click', () => makeMove(parseInt(cell.dataset.i))));
+
+function makeMove(i) {
+  if (gameOver || gameBoard[i]) return;
+  gameBoard[i] = gameTurn;
+  cell = document.querySelector(`.game-cell[data-i="${i}"]`);
+  cell.textContent = gameTurn === 'X' ? '☠' : '◎';
+  cell.classList.add(gameTurn === 'X' ? 'x' : 'o');
+  const win = checkWin(gameBoard, gameTurn);
+  if (win) {
+    win.forEach(idx => document.querySelector(`.game-cell[data-i="${idx}"]`).classList.add('win'));
+    gameResultEl.textContent = gameTurn === 'X' ? '🏴‍☠️ PIRATE WINS! Plunder the airwaves!' : '📡 SIGNAL DOMINATES! Tune in!';
+    gameTurnEl.textContent = '';
+    gameOver = true;
+    return;
+  }
+  if (!gameBoard.includes('')) {
+    gameResultEl.textContent = 'Dead air. Nobody wins.';
+    gameOver = true;
+    return;
+  }
+  gameTurn = gameTurn === 'X' ? 'O' : 'X';
+  gameTurnEl.textContent = gameTurn === 'X' ? 'Pirate\'s move ☠' : 'Signal\'s move ◎';
+}
+
+function checkWin(board, player) {
+  const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for (const p of wins) {
+    if (board[p[0]] === player && board[p[1]] === player && board[p[2]] === player) return p;
+  }
+  return null;
+}
+
+function resetGame() {
+  gameBoard = ['', '', '', '', '', '', '', '', ''];
+  gameTurn = 'X';
+  gameOver = false;
+  gameTurnEl.textContent = 'Your move, Captain';
+  gameResultEl.textContent = '';
+  gameCells.forEach(cell => {
+    cell.textContent = '';
+    cell.className = 'game-cell';
+  });
+}
 
 const messages = [
   "UNAUTHORIZED TRANSMISSION",
