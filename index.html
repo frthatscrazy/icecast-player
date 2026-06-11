@@ -831,7 +831,7 @@ footer {
   <div class="game-wrap">
     <div class="lbl">&#x1F3B0; Roulette &#x2620;</div>
     <div class="r-result" id="rResult">Place your bet, pick a number</div>
-    <div class="r-wheel-wrap"><canvas id="rWheel" width="360" height="280"></canvas></div>
+    <div class="r-wheel-wrap"><canvas id="rWheel" class="r-wheel-canvas" width="320" height="250"></canvas></div>
     <div class="r-mini-grid" id="rMiniGrid"></div>
     <div class="r-specials">
       <span class="r-special" data-r="red">RED</span>
@@ -1123,7 +1123,7 @@ const R_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,
 const REDS = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 
 function drawWheel(angle) {
-  const W=rCanvas.width,H=rCanvas.height,cx=W/2,cy=H/2,R=150,sy=0.5,seg=2*Math.PI/37;
+  const W=rCanvas.width,H=rCanvas.height,cx=W/2,cy=H/2,R=130,sy=0.5,seg=2*Math.PI/37;
 
   // --- Table felt background ---
   const grad=rCtx.createRadialGradient(cx,cy-30,60,cx,cy,240);
@@ -1138,10 +1138,10 @@ function drawWheel(angle) {
 
   // --- Wheel well ---
   rCtx.beginPath();
-  rCtx.ellipse(cx,cy+8,R+20,(R+20)*sy+10,0,0,2*Math.PI);
+  rCtx.ellipse(cx,cy+6,R+18,(R+18)*sy+8,0,0,2*Math.PI);
   rCtx.fillStyle='#0a0a0a'; rCtx.fill();
   rCtx.beginPath();
-  rCtx.ellipse(cx,cy+2,R+16,(R+16)*sy+5,0,0,2*Math.PI);
+  rCtx.ellipse(cx,cy+2,R+14,(R+14)*sy+4,0,0,2*Math.PI);
   rCtx.fillStyle='#111'; rCtx.fill();
   rCtx.strokeStyle='#2a1a0a'; rCtx.lineWidth=3; rCtx.stroke();
 
