@@ -611,6 +611,18 @@ button:active {
 .bj-chip[data-val="25"] { background: #6c3483; color: #d2b4de; border-color: #d2b4de; }
 .bj-chip[data-val="100"] { background: #922b21; color: #f5b041; border-color: #f5b041; }
 .bj-chip:active { transform: scale(0.95); }
+.bj-chip[data-ttt="1"]  { background: #8B4513; color: #ffd700; border-color: #ffd700; }
+.bj-chip[data-ttt="5"]  { background: #2c3e50; color: #bdc3c7; border-color: #bdc3c7; }
+.bj-chip[data-ttt="25"] { background: #6c3483; color: #d2b4de; border-color: #d2b4de; }
+.bj-chip[data-ttt="100"] { background: #922b21; color: #f5b041; border-color: #f5b041; }
+.wallet-wrap {
+  border: 1px solid #333;
+  padding: 8px 12px;
+  margin-top: 12px;
+  background: #080808;
+  text-align: center;
+  font-size: 0.95rem;
+}
 .bj-status {
   font-size: 0.85rem;
   margin-bottom: 8px;
@@ -708,8 +720,7 @@ footer {
       <div class="game-cell" data-i="8"></div>
     </div>
     <div class="game-result" id="gameResult"></div>
-    <div class="ttt-chips" style="margin:4px 0;font-size:0.8rem;display:flex;align-items:center;gap:4px;justify-content:center;flex-wrap:wrap">
-      Coffer: <span id="doubloons">500</span> &#x1FA99;
+    <div style="margin:4px 0;font-size:0.8rem;display:flex;align-items:center;gap:4px;justify-content:center;flex-wrap:wrap">
       <span class="bj-chip-row" style="display:inline-flex">
         <span class="bj-chip" data-ttt="1">1</span>
         <span class="bj-chip" data-ttt="5">5</span>
@@ -721,11 +732,14 @@ footer {
     <button class="game-btn" onclick="resetGame()">New Game</button>
   </div>
 
+  <div class="wallet-wrap">
+    &#x2620; COFFER: <span id="doubloons">500</span> &#x1FA99;
+  </div>
+
   <div class="game-wrap">
     <div class="lbl">&#x1F480; Davy Jones' Blackjack &#x1F3B4;</div>
     <div class="bj-status" id="bjStatus">Place your bet, Captain</div>
     <div class="bj-chips">
-      <div class="bj-balance">Coffer: <span id="doubloonsB">500</span> &#x1FA99;</div>
       <div class="bj-chip-row" id="bjChipRow">
         <span class="bj-chip" data-val="1">1</span>
         <span class="bj-chip" data-val="5">5</span>
@@ -897,22 +911,20 @@ const bjDealerTotalEl = document.getElementById('bjDealerTotal');
 const bjHitBtn = document.getElementById('bjHitBtn');
 const bjStandBtn = document.getElementById('bjStandBtn');
 const doubloonsEl = document.getElementById('doubloons');
-const bjBalanceEl = document.getElementById('doubloonsB');
 const bjBetEl = document.getElementById('bjBet');
 const tttBetEl = document.getElementById('tttBet');
 
 function refreshDoubloons() {
-  doubloonsEl.textContent = doubloons;
-  bjBalanceEl.textContent = doubloons;
-  bjBetEl.textContent = bjBet;
-  tttBetEl.textContent = tttBet;
+  if (doubloonsEl) doubloonsEl.textContent = doubloons || 0;
+  if (bjBetEl) bjBetEl.textContent = bjBet || 0;
+  if (tttBetEl) tttBetEl.textContent = tttBet || 0;
 }
 
 document.querySelectorAll('.bj-chip').forEach(el => {
   el.addEventListener('click', () => {
     if (bjPlayer.length && !bjGameOver) return;
-    const val = parseInt(el.dataset.val);
-    if (val > doubloons) return;
+    const val = parseInt(el.dataset.val, 10) || 0;
+    if (val <= 0 || val > doubloons) return;
     doubloons -= val;
     bjBet += val;
     refreshDoubloons();
@@ -923,11 +935,24 @@ document.querySelectorAll('.bj-chip').forEach(el => {
 document.querySelectorAll('.bj-chip[data-ttt]').forEach(el => {
   el.addEventListener('click', () => {
     if (gameOver || gameBoard.some(c => c)) return;
+    const val = parseInt(el.dataset.ttt, 10) || 0;
+    if (val <= 0 || val > doubloons) return;
+    doubloons -= val;
+    tttBet += val;
+    gameTurnEl.textContent = tttBet ? 'Bet placed! Make your move, Captain' : 'Your move, Captain';
+    refreshDoubloons();
+  });
+});
+});
+
+document.querySelectorAll('.bj-chip[data-ttt]').forEach(el => {
+  el.addEventListener('click', () => {
+    if (gameOver || gameBoard.some(c => c)) return;
     const val = parseInt(el.dataset.ttt);
     if (val > doubloons) return;
     doubloons -= val;
     tttBet += val;
-    gameTurnEl.textContent = tttBet ? 'Bet placed! Make your move, Captain' : 'Your move, Captain';
+  gameTurnEl.textContent = 'Your move, Captain';
     refreshDoubloons();
   });
 });
