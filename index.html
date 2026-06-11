@@ -1001,7 +1001,7 @@ function aiMove() {
     }
   }
   if (open.length === 0) return;
-  if (Math.random() < 0.4) {
+  if (Math.random() < 0.6) {
     bestMove = open[Math.floor(Math.random() * open.length)];
   }
   if (bestMove >= 0) makeMove(bestMove);
