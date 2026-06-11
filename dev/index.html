@@ -2388,6 +2388,8 @@ async function pkDeal() {
     if (!d.ok) { pkStatus.textContent = 'Error: ' + (d.error || ''); return; }
     pkGameId = d.id;
     pkState = d;
+    doubloons = Math.max(0, d.player_stack || 0);
+    refreshDoubloons();
     pkStatus.style.color = '#4f4';
     pkRender();
     if (d.hand_over) {
