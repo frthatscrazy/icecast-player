@@ -1093,8 +1093,7 @@ function aiMove() {
 function signalTrash(type) {
   const msgs = taunts[type];
   if (!msgs) return;
-  const dish = '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><path d="M3 20 Q12 2 21 20"/><line x1="12" y1="12" x2="12" y2="4"/><path d="M8 13 Q12 9 16 13" stroke-width="1.5" opacity="0.7"/><path d="M5 16 Q12 6 19 16" stroke-width="1.5" opacity="0.5"/></svg>';
-  signalTauntEl.innerHTML = dish + msgs[Math.floor(Math.random() * msgs.length)];
+  signalTauntEl.innerHTML = '◎ ' + msgs[Math.floor(Math.random() * msgs.length)];
   signalTauntEl.classList.add('show');
   setTimeout(() => { signalTauntEl.classList.remove('show'); }, 4000);
 }
