@@ -1123,38 +1123,37 @@ const R_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,
 const REDS = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 
 function drawWheel(angle) {
-  const W=rCanvas.width,H=rCanvas.height,cx=W/2+10,cy=H/2+10,R=82,sy=0.4,seg=2*Math.PI/37;
+  const W=rCanvas.width,H=rCanvas.height,cx=W/2,cy=H/2,R=150,sy=0.5,seg=2*Math.PI/37;
 
   // --- Table felt background ---
-  const grad=rCtx.createRadialGradient(cx,cy-20,40,cx,cy,200);
-  grad.addColorStop(0,'#1a4a1a'); grad.addColorStop(0.7,'#0d2e0d'); grad.addColorStop(1,'#091f09');
+  const grad=rCtx.createRadialGradient(cx,cy-30,60,cx,cy,240);
+  grad.addColorStop(0,'#1e5a1e'); grad.addColorStop(0.7,'#0e300e'); grad.addColorStop(1,'#081a08');
   rCtx.fillStyle=grad; rCtx.fillRect(0,0,W,H);
 
-  // --- Wooden rail (outer table edge) ---
+  // --- Wooden rail ---
   rCtx.strokeStyle='#3a2210'; rCtx.lineWidth=6;
   rCtx.strokeRect(4,4,W-8,H-8);
   rCtx.strokeStyle='#5a3a1a'; rCtx.lineWidth=2;
   rCtx.strokeRect(7,7,W-14,H-14);
 
-  // --- Wheel well (depression in felt) ---
+  // --- Wheel well ---
   rCtx.beginPath();
-  rCtx.ellipse(cx,cy+8,R+22,(R+22)*sy+12,0,0,2*Math.PI);
+  rCtx.ellipse(cx,cy+8,R+20,(R+20)*sy+10,0,0,2*Math.PI);
   rCtx.fillStyle='#0a0a0a'; rCtx.fill();
   rCtx.beginPath();
-  rCtx.ellipse(cx,cy+2,R+18,(R+18)*sy+6,0,0,2*Math.PI);
+  rCtx.ellipse(cx,cy+2,R+16,(R+16)*sy+5,0,0,2*Math.PI);
   rCtx.fillStyle='#111'; rCtx.fill();
-  rCtx.strokeStyle='#2a1a0a'; rCtx.lineWidth=3;
-  rCtx.stroke();
+  rCtx.strokeStyle='#2a1a0a'; rCtx.lineWidth=3; rCtx.stroke();
 
   // --- Wheel shadow ---
   rCtx.beginPath();
-  rCtx.ellipse(cx,cy+8,R,R*sy+4,0,0,2*Math.PI);
-  rCtx.fillStyle='rgba(0,0,0,0.5)'; rCtx.fill();
+  rCtx.ellipse(cx,cy+7,R,R*sy+3,0,0,2*Math.PI);
+  rCtx.fillStyle='rgba(0,0,0,0.4)'; rCtx.fill();
 
-  // --- 3D cylinder wall (front rim) ---
+  // --- 3D cylinder wall ---
   rCtx.beginPath();
   rCtx.ellipse(cx,cy+R*sy,R,R*sy,0,Math.PI,2*Math.PI);
-  rCtx.ellipse(cx,cy+R*sy,R-7,(R-7)*sy,0,0,Math.PI,true);
+  rCtx.ellipse(cx,cy+R*sy,R-6,(R-6)*sy,0,0,Math.PI,true);
   rCtx.closePath();
   rCtx.fillStyle='#222'; rCtx.fill();
   rCtx.strokeStyle='#555'; rCtx.lineWidth=1; rCtx.stroke();
@@ -1172,53 +1171,47 @@ function drawWheel(angle) {
   // --- Outer rim ring ---
   rCtx.beginPath();
   rCtx.ellipse(cx,cy,R,R*sy,0,0,2*Math.PI);
-  rCtx.strokeStyle='#666'; rCtx.lineWidth=2; rCtx.stroke();
+  rCtx.strokeStyle='#777'; rCtx.lineWidth=2; rCtx.stroke();
 
-  // --- Numbers (bottom outward, perspective-aware) ---
+  // --- Numbers ---
   for(let i=0;i<37;i++){
-    const m=angle+i*seg+seg/2-Math.PI/2,n=R_ORDER[i],tr=R*0.65;
+    const m=angle+i*seg+seg/2-Math.PI/2,n=R_ORDER[i],tr=R*0.62;
     const nx=cx+Math.cos(m)*tr, ny=cy+Math.sin(m)*tr*sy;
     const ea=Math.atan2(Math.sin(m)*sy,Math.cos(m));
     rCtx.save(); rCtx.translate(nx,ny);
     rCtx.rotate(ea-Math.PI/2);
     rCtx.fillStyle=n===0?'#4f4':'#ddd';
-    rCtx.font='bold 10px monospace'; rCtx.textAlign='center'; rCtx.textBaseline='middle';
+    rCtx.font='bold 11px monospace'; rCtx.textAlign='center'; rCtx.textBaseline='middle';
     rCtx.fillText(n,0,0); rCtx.restore();
   }
 
   // --- Center hub ---
   rCtx.beginPath();
-  rCtx.ellipse(cx,cy,13,13*sy,0,0,2*Math.PI);
+  rCtx.ellipse(cx,cy,14,14*sy,0,0,2*Math.PI);
   rCtx.fillStyle='#151515'; rCtx.fill();
   rCtx.strokeStyle='#555'; rCtx.lineWidth=2; rCtx.stroke();
   rCtx.beginPath();
-  rCtx.ellipse(cx,cy,5,5*sy,0,0,2*Math.PI);
+  rCtx.ellipse(cx,cy,6,6*sy,0,0,2*Math.PI);
   rCtx.fillStyle='#222'; rCtx.fill();
   rCtx.strokeStyle='#666'; rCtx.lineWidth=1; rCtx.stroke();
 
   // --- Pointer ---
   const px=cx, py=cy-R*sy;
   rCtx.beginPath();
-  rCtx.moveTo(px-7,py-4); rCtx.lineTo(px+7,py-4); rCtx.lineTo(px,py-16);
+  rCtx.moveTo(px-8,py-4); rCtx.lineTo(px+8,py-4); rCtx.lineTo(px,py-18);
   rCtx.closePath(); rCtx.fillStyle='#ffd700'; rCtx.fill();
   rCtx.beginPath();
-  rCtx.moveTo(px-4,py-5); rCtx.lineTo(px+4,py-5); rCtx.lineTo(px,py-13);
+  rCtx.moveTo(px-4,py-5); rCtx.lineTo(px+4,py-5); rCtx.lineTo(px,py-14);
   rCtx.closePath(); rCtx.fillStyle='#ffe44d'; rCtx.fill();
 
   // --- Ball ---
   const ba=angle+Math.PI/2;
-  rCtx.beginPath();
-  rCtx.arc(cx+Math.cos(ba)*R,cy+Math.sin(ba)*R*sy-3,5,0,2*Math.PI);
+  const bx=cx+Math.cos(ba)*R, by=cy+Math.sin(ba)*R*sy-3;
+  rCtx.beginPath(); rCtx.arc(bx,by,6,0,2*Math.PI);
   rCtx.fillStyle='#fff'; rCtx.fill();
   rCtx.strokeStyle='#aaa'; rCtx.lineWidth=1; rCtx.stroke();
-  rCtx.beginPath();
-  rCtx.arc(cx+Math.cos(ba)*R-1.5,cy+Math.sin(ba)*R*sy-5,1.5,0,2*Math.PI);
-  rCtx.fillStyle='rgba(255,255,255,0.6)'; rCtx.fill();
-
-  // --- Felt highlight for table depth ---
-  rCtx.beginPath();
-  rCtx.ellipse(cx,cy-25,R*sy,R*sy*0.5,0,0,2*Math.PI);
-  rCtx.fillStyle='rgba(255,255,255,0.02)'; rCtx.fill();
+  rCtx.beginPath(); rCtx.arc(bx-2,by-2,2,0,2*Math.PI);
+  rCtx.fillStyle='rgba(255,255,255,0.5)'; rCtx.fill();
 }
 
 (function initRoulette() {
