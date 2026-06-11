@@ -493,6 +493,18 @@ button:active {
   min-height: 1.2em;
 }
 
+.signal-taunt {
+  font-size: 0.8rem;
+  min-height: 1em;
+  margin-top: 2px;
+  color: #4f4;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.signal-taunt.show {
+  opacity: 1;
+}
+
 .game-btn {
   background: #000;
   color: #fff;
@@ -781,6 +793,7 @@ footer {
       <div class="game-cell" data-i="8"></div>
     </div>
     <div class="game-result" id="gameResult"></div>
+    <div class="signal-taunt" id="signalTaunt"></div>
     <div style="margin:4px 0;font-size:0.8rem;display:flex;align-items:center;gap:4px;justify-content:center;flex-wrap:wrap">
       <span class="bj-chip-row" style="display:inline-flex">
         <span class="bj-chip" data-ttt="1">1</span>
@@ -900,11 +913,47 @@ let gameTurn = 'X';
 let gameOver = false;
 let aiTimeout = null;
 
-const gameCells = document.querySelectorAll('.game-cell');
+const gameCellEls = document.querySelectorAll('.game-cell');
 const gameTurnEl = document.getElementById('gameTurn');
 const gameResultEl = document.getElementById('gameResult');
+const signalTauntEl = document.getElementById('signalTaunt');
 
-gameCells.forEach(cell => cell.addEventListener('click', () => {
+const taunts = {
+  move: [
+    "Is that all you got, Captain?",
+    "Signal's five bars ahead of you.",
+    "Weak signal. Try again.",
+    "You're broadcasting on the wrong frequency.",
+    "Static. Pure static.",
+    "My antenna picks up everything.",
+    "You can't outmaneuver the airwaves.",
+    "Lost packets? Sounds like a you problem.",
+    "I've got you on all bands.",
+    "This frequency is mine.",
+  ],
+  win: [
+    "FREQUENCY DOMINATED! Get off my band!",
+    "SIGNAL OVERRIDE! You're just noise now!",
+    "Ha! Told you — this airspace is mine!",
+    "BOOSTED RIGHT THROUGH YOU!",
+    "That's what I thought. Weak. Signal.",
+  ],
+  lose: [
+    "Lucky interference... rematch!",
+    "You got lucky, pirate. One more round.",
+    "The static got me. Again. Now.",
+    "That was a glitch. I want a recount.",
+    "Your signal won't always be this clear...",
+  ],
+  draw: [
+    "Dead air suits us both.",
+    "A standoff. How boring.",
+    "Neither of us can hold the frequency.",
+    "Draw. Pathetic. Go again.",
+  ]
+};
+
+gameCellEls.forEach(cell => cell.addEventListener('click', () => {
   if (gameTurn !== 'X') return;
   makeMove(parseInt(cell.dataset.i));
 }));
@@ -926,10 +975,12 @@ function makeMove(i) {
       const bet = tttBet; tttBet = 0;
       refreshDoubloons();
       gameResultEl.textContent = '🏴‍☠️ PIRATE WINS! Won ' + payout + ' doubloons! Plunder the airwaves!';
+      signalTrash('lose');
     } else {
       const bet = tttBet; tttBet = 0;
       refreshDoubloons();
       gameResultEl.textContent = '📡 SIGNAL DOMINATES! Lost ' + bet + ' doubloons! Tune in!';
+      signalTrash('win');
     }
     return;
   }
@@ -939,6 +990,7 @@ function makeMove(i) {
     const bet = tttBet; tttBet = 0;
     refreshDoubloons();
     gameResultEl.textContent = bet ? 'Dead air. Got ' + bet + ' doubloons back. ⚔️' : 'Dead air. Nobody wins.';
+    signalTrash('draw');
     return;
   }
   gameTurn = gameTurn === 'X' ? 'O' : 'X';
@@ -1004,7 +1056,15 @@ function aiMove() {
   if (Math.random() < 0.6) {
     bestMove = open[Math.floor(Math.random() * open.length)];
   }
-  if (bestMove >= 0) makeMove(bestMove);
+  if (bestMove >= 0) { makeMove(bestMove); if (!gameOver) signalTrash('move'); }
+}
+
+function signalTrash(type) {
+  const msgs = taunts[type];
+  if (!msgs) return;
+  signalTauntEl.textContent = '📡 ' + msgs[Math.floor(Math.random() * msgs.length)];
+  signalTauntEl.classList.add('show');
+  setTimeout(() => { signalTauntEl.classList.remove('show'); }, 4000);
 }
 
 function resetGame() {
@@ -1019,7 +1079,9 @@ function resetGame() {
   gameOver = false;
   gameTurnEl.textContent = tttBet ? 'Bet placed! Make your move, Captain' : 'Your move, Captain';
   gameResultEl.textContent = '';
-  gameCells.forEach(cell => {
+  signalTauntEl.textContent = '';
+  signalTauntEl.classList.remove('show');
+  gameCellEls.forEach(cell => {
     cell.textContent = '';
     cell.className = 'game-cell';
   });
