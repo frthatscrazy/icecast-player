@@ -1271,7 +1271,7 @@ function toggleRadio() {
       isPlaying = true;
       setStatus(true);
       animateVisualizer();
-      hideAlbumArt();
+      startCoverPoll();
       buildMarquee('Live stream');
       updateMediaSession('Live stream');
       if (!pollInterval) {
