@@ -1243,7 +1243,6 @@ function drawWheel(angle) {
 
   // --- Ball ---
   const ba = rBallAngle !== null ? rBallAngle : angle + Math.PI/2;
-  const nc=R*0.90;
   const br = rBallRad > 0 ? R - (R - nc) * Math.min(rBallRad, 1) : R;
   const bx = cx + Math.cos(ba) * br, by = cy + Math.sin(ba) * br * sy - 2 - rBallBounce;
   rCtx.beginPath(); rCtx.arc(bx,by,5,0,2*Math.PI);
