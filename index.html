@@ -623,6 +623,67 @@ button:active {
   text-align: center;
   font-size: 0.95rem;
 }
+.bj-chip[data-roulette="1"]  { background: #8B4513; color: #ffd700; border-color: #ffd700; }
+.bj-chip[data-roulette="5"]  { background: #2c3e50; color: #bdc3c7; border-color: #bdc3c7; }
+.bj-chip[data-roulette="25"] { background: #6c3483; color: #d2b4de; border-color: #d2b4de; }
+.bj-chip[data-roulette="100"] { background: #922b21; color: #f5b041; border-color: #f5b041; }
+.r-result { font-size: 0.85rem; margin-bottom: 8px; min-height: 1.2em; }
+.r-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+  max-width: 320px;
+  margin: 0 auto 6px;
+}
+.r-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid #333;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s;
+  background: #0d0d0d;
+}
+.r-cell:hover { border-color: #fff; filter: brightness(1.3); }
+.r-zero { background: #1a4a1a; color: #0f0; grid-column: 1 / -1; aspect-ratio: 3; }
+.r-red { color: #f44; }
+.r-black { color: #aaa; }
+.r-cell.r-selected { border-color: #ffd700; box-shadow: 0 0 8px #ffd700; }
+.r-specials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.r-special {
+  padding: 3px 8px;
+  border: 1px solid #333;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all 0.15s;
+  background: #0d0d0d;
+}
+.r-special:hover { border-color: #fff; filter: brightness(1.3); }
+.r-special.r-selected { border-color: #ffd700; box-shadow: 0 0 8px #ffd700; }
+.r-spin {
+  background: #000;
+  color: #fff;
+  border: 1px solid #333;
+  padding: 5px 24px;
+  font-family: 'VT323', monospace;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-top: 4px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+.r-spin:hover { background: #fff; color: #000; }
 .bj-status {
   font-size: 0.85rem;
   margin-bottom: 8px;
@@ -766,6 +827,30 @@ footer {
       <button class="game-btn" id="bjStandBtn" onclick="bjStand()">STAND</button>
       <button class="game-btn" onclick="bjDeal()">DEAL</button>
     </div>
+  </div>
+
+  <div class="game-wrap">
+    <div class="lbl">&#x1F3B0; Roulette &#x2620;</div>
+    <div class="r-result" id="rResult">Place your bet, pick a number</div>
+    <div class="r-grid" id="rGrid"></div>
+    <div class="r-specials">
+      <span class="r-special" data-r="red">RED</span>
+      <span class="r-special" data-r="black">BLACK</span>
+      <span class="r-special" data-r="odd">ODD</span>
+      <span class="r-special" data-r="even">EVEN</span>
+      <span class="r-special" data-r="1-18">1-18</span>
+      <span class="r-special" data-r="19-36">19-36</span>
+    </div>
+    <div class="bj-chips">
+      <div class="bj-chip-row" style="display:flex;gap:8px;justify-content:center;">
+        <span class="bj-chip" data-roulette="1">1</span>
+        <span class="bj-chip" data-roulette="5">5</span>
+        <span class="bj-chip" data-roulette="25">25</span>
+        <span class="bj-chip" data-roulette="100">100</span>
+      </div>
+      <div class="bj-bet">Bet: <span id="rBet">0</span> &#x1FA99;  | Coffer: <span id="rouletteCoffer">500</span> &#x1FA99;</div>
+    </div>
+    <button class="r-spin" id="rSpinBtn">SPIN</button>
   </div>
 
   <footer>
@@ -918,6 +1003,8 @@ function refreshDoubloons() {
   if (doubloonsEl) doubloonsEl.textContent = doubloons || 0;
   if (bjBetEl) bjBetEl.textContent = bjBet || 0;
   if (tttBetEl) tttBetEl.textContent = tttBet || 0;
+  if (rBetEl) rBetEl.textContent = rBet || 0;
+  if (rouletteCofferEl) rouletteCofferEl.textContent = doubloons || 0;
 }
 
 document.querySelectorAll('.bj-chip').forEach(el => {
@@ -1018,6 +1105,85 @@ function bjEnd() {
   if (pv < dv) { bjStatusEl.textContent = 'Davy Jones wins! Lost ' + bet + ' doubloons! Walk the plank! 💀'; return; }
   doubloons += bet; bjStatusEl.textContent = 'Push! Got ' + bet + ' doubloons back! ⚔️'; refreshDoubloons();
 }
+
+let rBet = 0;
+let rChoice = null;
+const rBetEl = document.getElementById('rBet');
+const rouletteCofferEl = document.getElementById('rouletteCoffer');
+const rResultEl = document.getElementById('rResult');
+const rGridEl = document.getElementById('rGrid');
+const rSpinBtn = document.getElementById('rSpinBtn');
+
+const REDS = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+
+(function buildRGrid() {
+  const zero = document.createElement('div');
+  zero.className = 'r-cell r-zero'; zero.textContent = '0'; zero.dataset.r = '0';
+  rGridEl.appendChild(zero);
+  for (let n = 1; n <= 36; n++) {
+    const c = document.createElement('div');
+    c.className = 'r-cell';
+    c.classList.add(REDS.has(n) ? 'r-red' : 'r-black');
+    c.textContent = n; c.dataset.r = n;
+    rGridEl.appendChild(c);
+  }
+})();
+
+document.querySelectorAll('.bj-chip[data-roulette]').forEach(el => {
+  el.addEventListener('click', () => {
+    if (rChoice) return;
+    const val = parseInt(el.dataset.roulette, 10) || 0;
+    if (val <= 0 || val > doubloons) return;
+    doubloons -= val;
+    rBet += val;
+    rResultEl.textContent = rBet ? 'Bet: ' + rBet + '. Pick a number or special bet' : 'Place your bet, pick a number';
+    refreshDoubloons();
+  });
+});
+
+document.querySelectorAll('.r-cell, .r-special').forEach(el => {
+  el.addEventListener('click', () => {
+    if (rBet <= 0) { rResultEl.textContent = 'Place a bet first!'; return; }
+    document.querySelectorAll('.r-cell, .r-special').forEach(e => e.classList.remove('r-selected'));
+    el.classList.add('r-selected');
+    rChoice = el.dataset.r;
+    rResultEl.textContent = 'Bet on ' + rChoice + ' for ' + rBet + ' doubloons. Hit SPIN!';
+  });
+});
+
+rSpinBtn.addEventListener('click', () => {
+  if (rBet <= 0) { rResultEl.textContent = 'Place a bet first!'; return; }
+  if (!rChoice) { rResultEl.textContent = 'Pick a number or special bet!'; return; }
+
+  const result = Math.floor(Math.random() * 37);
+  const color = result === 0 ? 'green' : REDS.has(result) ? 'red' : 'black';
+  const parity = result === 0 ? '' : (result % 2 ? 'odd' : 'even');
+  const range = result === 0 ? '' : (result <= 18 ? '1-18' : '19-36');
+
+  let won = false;
+  if (rChoice === String(result)) won = true;
+  else if (rChoice === 'red' && color === 'red') won = true;
+  else if (rChoice === 'black' && color === 'black') won = true;
+  else if (rChoice === 'odd' && parity === 'odd') won = true;
+  else if (rChoice === 'even' && parity === 'even') won = true;
+  else if (rChoice === '1-18' && range === '1-18') won = true;
+  else if (rChoice === '19-36' && range === '19-36') won = true;
+
+  const bet = rBet;
+  rBet = 0; rChoice = null; refreshDoubloons();
+  document.querySelectorAll('.r-cell, .r-special').forEach(e => e.classList.remove('r-selected'));
+
+  const spinMsg = '🎲 ' + result + ' ' + color.toUpperCase();
+  if (won) {
+    const mult = String(result) === rChoice ? 35 : 1;
+    const payout = bet + bet * mult;
+    doubloons += payout;
+    refreshDoubloons();
+    rResultEl.textContent = spinMsg + '! Won ' + payout + ' doubloons! 🏴‍☠️';
+  } else {
+    rResultEl.textContent = spinMsg + '! Lost ' + bet + ' doubloons! 💀';
+  }
+});
 
 const messages = [
   "UNAUTHORIZED TRANSMISSION",
