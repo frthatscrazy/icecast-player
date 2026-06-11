@@ -1208,16 +1208,18 @@ function drawWheel(angle) {
   // outer ring (bottom of numbers)
   rCtx.beginPath(); rCtx.ellipse(cx,cy,nc+rw/2,(nc+rw/2)*sy,0,0,2*Math.PI);
   rCtx.strokeStyle='#b8963a'; rCtx.lineWidth=1.5; rCtx.stroke();
-  // numbers positioned on the isometric surface
+  // numbers drawn inside isometric space so text compresses with surface
+  rCtx.save(); rCtx.translate(cx,cy); rCtx.scale(1,sy);
   for(let i=0;i<37;i++){
     const m=angle+i*seg+seg/2-Math.PI/2,n=R_ORDER[i];
-    const nx=cx+Math.cos(m)*nc, ny=cy+Math.sin(m)*nc*sy;
+    const nx=Math.cos(m)*nc, ny=Math.sin(m)*nc;
     rCtx.save(); rCtx.translate(nx,ny);
     rCtx.rotate(m-Math.PI/2);
     rCtx.fillStyle=n===0?'#4f4':'#ddd';
     rCtx.font='bold 11px monospace'; rCtx.textAlign='center'; rCtx.textBaseline='middle';
     rCtx.fillText(n,0,0); rCtx.restore();
   }
+  rCtx.restore();
 
   // --- Center hub ---
   rCtx.beginPath();
