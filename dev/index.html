@@ -1129,20 +1129,20 @@ footer {
       </div>
       <div class="pk-players">
         <div class="pk-player-area">
-          <div class="pk-player-lbl">&#x2622; Signal</div>
-          <div class="pk-cards" id="pkSignalCards">
-            <span class="pk-card back">?</span>
-            <span class="pk-card back">?</span>
-          </div>
-          <div class="pk-player-lbl" style="margin-top:2px">Stack: <span id="pkSignalStack" class="pk-val">500</span></div>
-        </div>
-        <div class="pk-player-area">
           <div class="pk-player-lbl">&#x2620; Captain</div>
           <div class="pk-cards" id="pkPlayerCards">
             <span class="pk-card back">?</span>
             <span class="pk-card back">?</span>
           </div>
           <div class="pk-player-lbl" style="margin-top:2px">Stack: <span id="pkPlayerStack" class="pk-val">500</span></div>
+        </div>
+        <div class="pk-player-area">
+          <div class="pk-player-lbl">&#x2622; Signal</div>
+          <div class="pk-cards" id="pkSignalCards">
+            <span class="pk-card back">?</span>
+            <span class="pk-card back">?</span>
+          </div>
+          <div class="pk-player-lbl" style="margin-top:2px">Stack: <span id="pkSignalStack" class="pk-val">500</span></div>
         </div>
       </div>
       <div class="pk-info">
@@ -2309,7 +2309,7 @@ function pkRender() {
   let shArr = [];
   for (let i = 0; i < sh.length; i += 2) shArr.push(sh.substr(i, 2));
   while (shArr.length < 2) shArr.push(null);
-  const hideSignal = !s.hand_over && s.phase !== '';
+  const hideSignal = !s.hand_over;
   pkSignalCards.innerHTML = shArr.map(c => pkCardHTML(c, hideSignal)).join('');
 
   pkPot.textContent = s.pot || 0;
