@@ -1126,48 +1126,103 @@ const REDS = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 function drawWheel(angle) {
   const W=rCanvas.width,H=rCanvas.height,cx=W/2,cy=H/2,R=130,sy=0.5,seg=2*Math.PI/37;
 
-  // --- Table felt background ---
-  const grad=rCtx.createRadialGradient(cx,cy-30,60,cx,cy,240);
-  grad.addColorStop(0,'#1e5a1e'); grad.addColorStop(0.7,'#0e300e'); grad.addColorStop(1,'#081a08');
-  rCtx.fillStyle=grad; rCtx.fillRect(0,0,W,H);
-
-  // --- Wooden rail ---
-  rCtx.strokeStyle='#3a2210'; rCtx.lineWidth=6;
-  rCtx.strokeRect(4,4,W-8,H-8);
-  rCtx.strokeStyle='#5a3a1a'; rCtx.lineWidth=2;
-  rCtx.strokeRect(7,7,W-14,H-14);
+  // --- Felt background ---
+  rCtx.fillStyle='#081a08'; rCtx.fillRect(0,0,W,H);
 
   // --- Wheel well ---
   rCtx.beginPath();
-  rCtx.ellipse(cx,cy+6,R+18,(R+18)*sy+8,0,0,2*Math.PI);
-  rCtx.fillStyle='#0a0a0a'; rCtx.fill();
+  rCtx.ellipse(cx,cy+4,R+18,(R+18)*sy+8,0,0,2*Math.PI);
+  rCtx.fillStyle='#080808'; rCtx.fill();
   rCtx.beginPath();
   rCtx.ellipse(cx,cy+2,R+14,(R+14)*sy+4,0,0,2*Math.PI);
-  rCtx.fillStyle='#111'; rCtx.fill();
-  rCtx.strokeStyle='#2a1a0a'; rCtx.lineWidth=3; rCtx.stroke();
+  rCtx.fillStyle='#0a0a0a'; rCtx.fill();
+  rCtx.strokeStyle='#151515'; rCtx.lineWidth=1; rCtx.stroke();
 
   // --- Wheel shadow ---
   rCtx.beginPath();
   rCtx.ellipse(cx,cy+7,R,R*sy+3,0,0,2*Math.PI);
-  rCtx.fillStyle='rgba(0,0,0,0.4)'; rCtx.fill();
+  rCtx.fillStyle='rgba(0,0,0,0.3)'; rCtx.fill();
 
-  // --- 3D cylinder wall ---
+  // --- Cylinder wall ---
   rCtx.beginPath();
   rCtx.ellipse(cx,cy+R*sy,R,R*sy,0,Math.PI,2*Math.PI);
-  rCtx.ellipse(cx,cy+R*sy,R-6,(R-6)*sy,0,0,Math.PI,true);
+  rCtx.ellipse(cx,cy+R*sy,R-4,(R-4)*sy,0,0,Math.PI,true);
   rCtx.closePath();
-  rCtx.fillStyle='#222'; rCtx.fill();
-  rCtx.strokeStyle='#555'; rCtx.lineWidth=1; rCtx.stroke();
+  rCtx.fillStyle='#0a0a0a'; rCtx.fill();
+  rCtx.strokeStyle='#151515'; rCtx.lineWidth=0.5; rCtx.stroke();
 
   // --- Top surface segments ---
+  rCtx.save(); rCtx.translate(cx,cy); rCtx.scale(1,sy);
   for(let i=0;i<37;i++){
     const s=angle+i*seg-Math.PI/2,e=s+seg,n=R_ORDER[i];
-    rCtx.save(); rCtx.translate(cx,cy); rCtx.scale(1,sy);
     rCtx.beginPath(); rCtx.moveTo(0,0); rCtx.arc(0,0,R,s,e); rCtx.closePath();
-    rCtx.fillStyle=n===0?'#1a5a1a':REDS.has(n)?'#8b2020':'#222';
-    rCtx.fill(); rCtx.strokeStyle='#333'; rCtx.lineWidth=1; rCtx.stroke();
-    rCtx.restore();
+    rCtx.fillStyle=n===0?'#0a1a0a':REDS.has(n)?'#1a0a0a':'#080808';
+    rCtx.fill(); rCtx.strokeStyle='#151515'; rCtx.lineWidth=0.5; rCtx.stroke();
   }
+  rCtx.restore();
+
+  // --- Neon glow on red/green segments ---
+  rCtx.save(); rCtx.translate(cx,cy); rCtx.scale(1,sy);
+  for(let i=0;i<37;i++){
+    const s=angle+i*seg-Math.PI/2,e=s+seg,n=R_ORDER[i];
+    if(n===0||REDS.has(n)){
+      const nc2=n===0?'#4f4':'#f44';
+      rCtx.beginPath(); rCtx.arc(0,0,R-1,s,e);
+      rCtx.shadowBlur=12; rCtx.shadowColor=nc2;
+      rCtx.strokeStyle=nc2; rCtx.lineWidth=1.5; rCtx.stroke();
+      rCtx.shadowBlur=0;
+    }
+  }
+  rCtx.restore();
+
+  // --- Outer rim ring ---
+  rCtx.beginPath();
+  rCtx.ellipse(cx,cy,R,R*sy,0,0,2*Math.PI);
+  rCtx.strokeStyle='#222'; rCtx.lineWidth=1; rCtx.stroke();
+
+  // --- Number ring ---
+  const nc=R*0.90,rw=16;
+  rCtx.beginPath(); rCtx.ellipse(cx,cy,nc-rw/2,(nc-rw/2)*sy,0,0,2*Math.PI);
+  rCtx.strokeStyle='#333'; rCtx.lineWidth=1; rCtx.stroke();
+  rCtx.beginPath(); rCtx.ellipse(cx,cy,nc+rw/2,(nc+rw/2)*sy,0,0,2*Math.PI);
+  rCtx.strokeStyle='#333'; rCtx.lineWidth=1; rCtx.stroke();
+  // numbers in isometric space
+  rCtx.save(); rCtx.translate(cx,cy); rCtx.scale(1,sy);
+  for(let i=0;i<37;i++){
+    const m=angle+i*seg+seg/2-Math.PI/2,n=R_ORDER[i];
+    const nx=Math.cos(m)*nc, ny=Math.sin(m)*nc;
+    rCtx.save(); rCtx.translate(nx,ny);
+    rCtx.rotate(m-Math.PI/2);
+    rCtx.fillStyle=n===0?'#4f4':'#999';
+    rCtx.font='bold 11px monospace'; rCtx.textAlign='center'; rCtx.textBaseline='middle';
+    rCtx.fillText(n,0,0); rCtx.restore();
+  }
+  rCtx.restore();
+
+  // --- Center hub ---
+  rCtx.beginPath(); rCtx.arc(cx,cy,8,0,2*Math.PI);
+  rCtx.fillStyle='#0d0d0d'; rCtx.fill();
+  rCtx.strokeStyle='#333'; rCtx.lineWidth=1; rCtx.stroke();
+
+  // --- Pointer ---
+  const px=cx, py=cy-R*sy;
+  rCtx.beginPath();
+  rCtx.moveTo(px-6,py-2); rCtx.lineTo(px+6,py-2); rCtx.lineTo(px,py-15);
+  rCtx.closePath();
+  rCtx.fillStyle='#f44'; rCtx.fill();
+  rCtx.shadowBlur=10; rCtx.shadowColor='#f44';
+  rCtx.strokeStyle='#f44'; rCtx.lineWidth=0.5; rCtx.stroke();
+  rCtx.shadowBlur=0;
+
+  // --- Ball ---
+  const ba=angle+Math.PI/2;
+  const bx=cx+Math.cos(ba)*R, by=cy+Math.sin(ba)*R*sy-2;
+  rCtx.beginPath(); rCtx.arc(bx,by,5,0,2*Math.PI);
+  rCtx.fillStyle='#fff'; rCtx.fill();
+  rCtx.shadowBlur=12; rCtx.shadowColor='rgba(255,255,255,0.4)';
+  rCtx.strokeStyle='rgba(255,255,255,0.2)'; rCtx.lineWidth=0.5; rCtx.stroke();
+  rCtx.shadowBlur=0;
+}
 
   // --- Outer rim ring ---
   rCtx.beginPath();
