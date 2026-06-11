@@ -749,6 +749,7 @@ button:active {
   margin-right: 6px;
 }
 .chat-msg .tag.self { color: #0f0; filter: drop-shadow(0 0 4px #0f0); }
+.chat-dish { font-size: 1.8rem; vertical-align: middle; line-height: 1; }
 .chat-msg .time {
   opacity: 0.3;
   font-size: 0.75rem;
@@ -1933,7 +1934,7 @@ async function pollChat() {
       el.className = 'chat-msg';
       const t = new Date(m.time * 1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       const tagClass = m.name === chatName ? 'tag self' : 'tag';
-      el.innerHTML = `<span class="time">${t}</span><span class="${tagClass}">◎ ${escapeHtml(m.name)}</span>${escapeHtml(m.text)}`;
+      el.innerHTML = `<span class="time">${t}</span><span class="${tagClass}"><span class="chat-dish">◎</span> ${escapeHtml(m.name)}</span>${escapeHtml(m.text)}`;
       chatBox.appendChild(el);
     }
     chatBox.scrollTop = chatBox.scrollHeight;
