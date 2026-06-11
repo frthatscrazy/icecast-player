@@ -877,9 +877,6 @@ let mbFallbackTimer = null;
 function startCoverPoll() {
   stopCoverPoll();
   if (coverBlobUrl) { URL.revokeObjectURL(coverBlobUrl); coverBlobUrl = null; }
-  albumArtImg.src = '';
-  albumArtImg.classList.remove('loaded');
-  albumArtFallback.style.display = '';
   coverInterval = setInterval(pollCover, 3000);
   pollCoverMusicBrainz();
 }
