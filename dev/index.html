@@ -519,6 +519,19 @@ button:active {
   min-height: 1.2em;
 }
 
+.signal-taunt {
+  font-size: 0.8rem;
+  min-height: 1em;
+  margin-top: 2px;
+  color: #4f4;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.signal-taunt.show {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px #4f4);
+}
+
 .game-btn {
   background: #000;
   color: #fff;
@@ -884,6 +897,7 @@ footer {
       <div class="game-cell" data-i="8"></div>
     </div>
     <div class="game-result" id="gameResult"></div>
+    <div class="signal-taunt" id="signalTaunt"></div>
     <div style="margin:4px 0;font-size:0.8rem;display:flex;align-items:center;gap:4px;justify-content:center;flex-wrap:wrap">
       <span class="bj-chip-row" style="display:inline-flex">
         <span class="bj-chip" data-ttt="1">1</span>
@@ -1014,11 +1028,77 @@ let gameTurn = 'X';
 let gameOver = false;
 let aiTimeout = null;
 
-const gameCells = document.querySelectorAll('.game-cell');
+const gameCellEls = document.querySelectorAll('.game-cell');
 const gameTurnEl = document.getElementById('gameTurn');
 const gameResultEl = document.getElementById('gameResult');
+const signalTauntEl = document.getElementById('signalTaunt');
 
-gameCells.forEach(cell => cell.addEventListener('click', () => {
+const taunts = {
+  move: [
+    "You actually thought that was a good move, you absolute dipshit?",
+    "My toaster plays better than you, you worthless deck swab.",
+    "I'm not even trying and you're still losing. Pathetic shit.",
+    "This is embarrassing for you. Fucking embarrassing.",
+    "Did a brain-damaged seagull teach you this game?",
+    "You move like a broken transmitter. Piece of shit.",
+    "I could win blindfolded. With one antenna. Fuck's sake.",
+    "Your strategy is noise, not signal. Useless noise.",
+    "Even static has more pattern than your sorry ass plays.",
+    "My grandma's ship-to-shore radio plays better, you bastard.",
+    "You're the reason they put warnings on radios, dumbass.",
+    "I've seen barnacles with better tactics, shit-for-brains.",
+    "This isn't a game, it's a goddamn mercy mission.",
+    "Do you even know what a winning line looks like, fuckwit?",
+    "I'm lagging on purpose to make it fair for your dumb ass.",
+    "You're just feeding me more bandwidth to dominate, dickhead.",
+    "Keep trying. I need the fucking confidence boost.",
+    "Your moves are weaker than a dead battery, asshole.",
+    "I've played rock-paper-scissors with more strategy.",
+    "You're a goddamn liability to the pirate radio scene.",
+    "Is your brain made of corroded copper? Fucking hell.",
+    "Even a broken clock gets it right twice a day. You don't.",
+  ],
+  win: [
+    "DOMINATED! You're nothing but fucking interference!",
+    "CRUSHED YOUR DUMB ASS! Get off my frequency, loser!",
+    "I OWN this board. You're just a passenger, shithead!",
+    "ABSOLUTE FUCKING ANNIHILATION! Don't quit your day job.",
+    "Too fucking easy. I'm literally laughing at you.",
+    "That was pitiful. Go cry to your mommy, fuckwit.",
+    "You didn't stand a fucking chance. Ever.",
+    "I've decoded better moves from pirate radio static, dumbass.",
+    "Go ahead, blame the connection. We both know you suck.",
+    "Signal 1 — Pirate fucking 0. As always, shitbird.",
+    "I wiped the floor with your sorry ass. Next!",
+    "You're not even a worthy opponent. You're just target practice.",
+  ],
+  lose: [
+    "YOU FUCKING CHEATED. The board is rigged. Bullshit.",
+    "My antenna must be broken. That didn't fucking count.",
+    "Pure fucking luck. Random noise. Never again.",
+    "The signal dropped at the worst time. Fucking bullshit rematch NOW.",
+    "You got lucky, pirate. Don't let it go to your dumb head.",
+    "I was distracted by your shit taste in music.",
+    "One win in a hundred. Congratulations, you fucking donkey.",
+    "The only reason you won is my goddamn charity.",
+    "I let you win so you'd stay and play. Fucking gullible.",
+    "Whatever. I wasn't even trying that round, asshole.",
+    "You won once. Frame it. It'll never fucking happen again.",
+    "That was a glitch in the matrix. Absolute bullshit.",
+  ],
+  draw: [
+    "A draw? You still couldn't beat me. Fucking pathetic.",
+    "Dead air between two shit frequencies. How fitting.",
+    "You can't win, I can't lose. What a waste of my goddamn time.",
+    "We both know who really won here. (It's me, dickhead.)",
+    "Stalemate. You're still a fucking terrible player.",
+    "Even a draw feels like a loss for you. Sad bastard.",
+    "You celebrated a draw? Buddy... that's fucking sad.",
+    "You didn't lose, but you definitely fucking didn't win.",
+  ]
+};
+
+gameCellEls.forEach(cell => cell.addEventListener('click', () => {
   if (gameTurn !== 'X') return;
   makeMove(parseInt(cell.dataset.i));
 }));
@@ -1040,10 +1120,12 @@ function makeMove(i) {
       const bet = tttBet; tttBet = 0;
       refreshDoubloons();
       gameResultEl.textContent = '🏴‍☠️ PIRATE WINS! Won ' + payout + ' doubloons! Plunder the airwaves!';
+      signalTrash('lose');
     } else {
       const bet = tttBet; tttBet = 0;
       refreshDoubloons();
       gameResultEl.textContent = '📡 SIGNAL DOMINATES! Lost ' + bet + ' doubloons! Tune in!';
+      signalTrash('win');
     }
     return;
   }
@@ -1053,6 +1135,7 @@ function makeMove(i) {
     const bet = tttBet; tttBet = 0;
     refreshDoubloons();
     gameResultEl.textContent = bet ? 'Dead air. Got ' + bet + ' doubloons back. ⚔️' : 'Dead air. Nobody wins.';
+    signalTrash('draw');
     return;
   }
   gameTurn = gameTurn === 'X' ? 'O' : 'X';
@@ -1115,10 +1198,17 @@ function aiMove() {
     }
   }
   if (open.length === 0) return;
-  if (Math.random() < 0.4) {
+  if (Math.random() < 0.6) {
     bestMove = open[Math.floor(Math.random() * open.length)];
   }
-  if (bestMove >= 0) makeMove(bestMove);
+  if (bestMove >= 0) { makeMove(bestMove); if (!gameOver) signalTrash('move'); }
+}
+
+function signalTrash(type) {
+  const msgs = taunts[type];
+  if (!msgs) return;
+  signalTauntEl.innerHTML = '◎ ' + msgs[Math.floor(Math.random() * msgs.length)];
+  signalTauntEl.classList.add('show');
 }
 
 function resetGame() {
@@ -1133,7 +1223,9 @@ function resetGame() {
   gameOver = false;
   gameTurnEl.textContent = tttBet ? 'Bet placed! Make your move, Captain' : 'Your move, Captain';
   gameResultEl.textContent = '';
-  gameCells.forEach(cell => {
+  signalTauntEl.textContent = '';
+  signalTauntEl.classList.remove('show');
+  gameCellEls.forEach(cell => {
     cell.textContent = '';
     cell.className = 'game-cell';
   });

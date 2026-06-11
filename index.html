@@ -505,6 +505,7 @@ button:active {
   opacity: 1;
   filter: drop-shadow(0 0 6px #4f4);
 }
+.taunt-dish { font-size: 1.8rem; vertical-align: middle; line-height: 1; }
 
 .game-btn {
   background: #000;
@@ -1093,7 +1094,7 @@ function aiMove() {
 function signalTrash(type) {
   const msgs = taunts[type];
   if (!msgs) return;
-  signalTauntEl.innerHTML = '◎ ' + msgs[Math.floor(Math.random() * msgs.length)];
+  signalTauntEl.innerHTML = '<span class="taunt-dish">◎</span> ' + msgs[Math.floor(Math.random() * msgs.length)];
   signalTauntEl.classList.add('show');
 }
 
