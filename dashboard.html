@@ -34,6 +34,15 @@ body { background: #0a0a0a; color: #c0c0c0; font-family: 'Courier New', monospac
 .history-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #1a1a1a; font-size: 0.8rem; }
 .history-item .time { color: #555; width: 80px; flex-shrink: 0; }
 .history-item .song { color: #aaa; }
+.mini-history { background: #111; border: 1px solid #222; padding: 6px 14px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; font-size: 0.75rem; overflow: hidden; }
+.mini-history .mh-lbl { color: #555; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; font-size: 0.65rem; }
+.mini-history .mh-ticker { flex: 1; overflow: hidden; position: relative; height: 1.4em; }
+.mini-history .mh-ticker .mh-item { position: absolute; white-space: nowrap; animation: ticker 12s linear infinite; }
+@keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+.mini-history .mh-ticker .mh-item .mh-time { color: #555; margin-right: 8px; }
+.mini-history .mh-ticker .mh-item .mh-title { color: #aaa; }
+.nav-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid #333; color: #888; text-decoration: none; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; font-family: inherit; background: #111; cursor: pointer; }
+.nav-btn:hover { color: #0f0; border-color: #0f0; }
 .latency-bar { position: relative; height: 24px; background: #1a1a1a; margin: 8px 0; overflow: hidden; }
 .latency-bar .fill { height: 100%; background: linear-gradient(90deg, #0f0, #ff0, #f00); transition: width 1s; }
 .latency-bar .label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; color: #000; font-weight: bold; }
@@ -48,8 +57,16 @@ body { background: #0a0a0a; color: #c0c0c0; font-family: 'Courier New', monospac
 </head>
 <body>
 <div class="header">
-  <div><h1>&#x2622; CONTROL PANEL</h1><div class="sub">birdhau5radio.org / internal telemetry</div></div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div><h1>&#x2622; CONTROL PANEL</h1><div class="sub">birdhau5radio.org / internal telemetry</div></div>
+    <a href="https://birdhau5radio.org" class="nav-btn">&#x2190; Player</a>
+    <a href="https://birdhau5radio.org/dev/" class="nav-btn">&#x2699; Dev</a>
+  </div>
   <div><span class="status-badge" id="serverBadge"><span class="dot off" id="statusDot"></span><span id="statusLabel">OFFLINE</span></span></div>
+</div>
+<div class="mini-history" id="miniHistory" style="display:none">
+  <span class="mh-lbl">&#x266B; Now</span>
+  <div class="mh-ticker"><div class="mh-item" id="mhItem"><span class="mh-time" id="mhTime">--</span><span class="mh-title" id="mhTitle">No track yet</span></div></div>
 </div>
 <div class="grid">
   <div class="card"><div class="card-title">Stream</div><div class="card-body">
@@ -165,12 +182,18 @@ function poll() {
       document.getElementById('svVersion').textContent=ss.server_id||'--';
       document.getElementById('svClients').textContent=ss.clients||'--';
       document.getElementById('svQueue').textContent='524288 bytes (~32s)';
-      const t=fixEncoding(src.title||''); if(t&&t!==lastTitle){lastTitle=t; trackHistory.unshift({time:new Date().toLocaleTimeString(),title:t}); if(trackHistory.length>100)trackHistory.pop(); renderHistory();}
+      const t=fixEncoding(src.title||''); if(t&&t!==lastTitle){lastTitle=t; trackHistory.unshift({time:new Date().toLocaleTimeString(),title:t}); if(trackHistory.length>100)trackHistory.pop(); renderHistory(); updateMiniHistory(t);} else if(t){updateMiniHistory(t);}
       addHistoryPoint(src.listeners||0); estimateLatency(br,bs,st);
     }
   }).catch(()=>setOnline(false));
 }
 function renderHistory() { const el=document.getElementById('historyList'); if(!trackHistory.length){el.innerHTML='<div style="color:#444;padding:8px 0;font-size:0.8rem;">No tracks yet</div>';return;} el.innerHTML=trackHistory.map(t=>'<div class="history-item"><span class="time">'+t.time+'</span><span class="song">'+t.title+'</span></div>').join(''); }
+function updateMiniHistory(title) {
+  const wrap = document.getElementById('miniHistory');
+  wrap.style.display = 'flex';
+  document.getElementById('mhTitle').textContent = title;
+  document.getElementById('mhTime').textContent = new Date().toLocaleTimeString();
+}
 let chartCanvas=document.getElementById('listenerChart'), chartCtx=chartCanvas.getContext('2d');
 function resizeChart(){const r=chartCanvas.parentElement.getBoundingClientRect(); chartCanvas.width=chartCanvas.clientWidth||r.width-28||600; chartCanvas.height=chartCanvas.clientHeight||180;}
 function addHistoryPoint(v){listenerHistory.push(v); if(listenerHistory.length>HISTORY_POINTS)listenerHistory.shift(); drawChart();}
