@@ -988,8 +988,10 @@ function aiMove() {
   if (gameOver || gameTurn !== 'O') return;
   let bestScore = -Infinity;
   let bestMove = -1;
+  const open = [];
   for (let i = 0; i < 9; i++) {
     if (gameBoard[i]) continue;
+    open.push(i);
     gameBoard[i] = 'O';
     const score = minimax(gameBoard, 0, false);
     gameBoard[i] = '';
@@ -997,6 +999,10 @@ function aiMove() {
       bestScore = score;
       bestMove = i;
     }
+  }
+  if (open.length === 0) return;
+  if (Math.random() < 0.4) {
+    bestMove = open[Math.floor(Math.random() * open.length)];
   }
   if (bestMove >= 0) makeMove(bestMove);
 }
