@@ -795,14 +795,8 @@ async function pollStatus() {
       buildMarquee(title);
       addTrackEntry(title);
       updateMediaSession(title);
-      searchAlbumArt(title).then(art => {
-        if (art) {
-          updateMediaSession(title, art);
-          showAlbumArt(art);
-        } else {
-          hideAlbumArt();
-        }
-      });
+      startCoverPoll();
+      searchFallbackArt(title);
     } else if (!title && !lastTitle) {
       buildMarquee('');
       updateMediaSession('Live stream');
@@ -813,47 +807,57 @@ async function pollStatus() {
   }
 }
 
-const albumArtCache = {};
 const UA = { headers: { 'User-Agent': 'PirateRadio/1.0 ( birdhau5radio.org )' } };
+const artCache = {};
 
-function showAlbumArt(url) {
-  albumArtImg.src = url;
-  albumArtImg.classList.add('loaded');
-  albumArtFallback.style.display = 'none';
+let coverInterval = null;
+let coverBlobUrl = null;
+let coverBytes = 0;
+let mbFallbackTimer = null;
+
+function startCoverPoll() {
+  stopCoverPoll();
+  coverInterval = setInterval(pollCover, 3000);
+  pollCover();
+  mbFallbackTimer = setTimeout(pollCoverMusicBrainz, 12000);
 }
 
-function hideAlbumArt() {
-  albumArtImg.src = '';
-  albumArtImg.classList.remove('loaded');
-  albumArtFallback.style.display = '';
+function stopCoverPoll() {
+  if (coverInterval) { clearInterval(coverInterval); coverInterval = null; }
+  if (mbFallbackTimer) { clearTimeout(mbFallbackTimer); mbFallbackTimer = null; }
 }
 
-async function searchAlbumArt(title) {
-  if (albumArtCache[title] !== undefined) return albumArtCache[title];
-  albumArtCache[title] = null;
-
-  const ts = Date.now();
-  const localUrl = '/current_cover.jpg?t=' + ts;
+async function pollCover() {
   try {
-    const img = new Image();
-    const loaded = new Promise((resolve, reject) => {
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
-      img.src = localUrl;
-    });
-    if (await loaded) {
-      albumArtCache[title] = localUrl;
-      return localUrl;
-    }
+    const res = await fetch('/cover/current.jpg?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    if (blob.size === coverBytes) return;
+    if (coverBlobUrl) URL.revokeObjectURL(coverBlobUrl);
+    coverBlobUrl = URL.createObjectURL(blob);
+    coverBytes = blob.size;
+    albumArtImg.src = coverBlobUrl;
+    albumArtImg.classList.add('loaded');
+    albumArtFallback.style.display = 'none';
+    if (mbFallbackTimer) { clearTimeout(mbFallbackTimer); mbFallbackTimer = null; }
   } catch (_) {}
+}
 
+async function pollCoverMusicBrainz() {
+  const title = lastTitle;
+  if (!title) return;
+  if (artCache[title] !== undefined) {
+    if (artCache[title]) showCoverArt(artCache[title]);
+    return;
+  }
+  artCache[title] = null;
   try {
     const res = await fetch(
       `https://musicbrainz.org/ws/2/recording/?fmt=json&query=${encodeURIComponent(title)}&limit=3`,
       UA
     );
     const data = await res.json();
-    if (!data.recordings) return null;
+    if (!data.recordings) return;
     for (const rec of data.recordings) {
       if (!rec.releases) continue;
       for (const rel of rec.releases) {
@@ -869,14 +873,30 @@ async function searchAlbumArt(title) {
             if (!cd.images || !cd.images.length) continue;
             const t = cd.images[0].thumbnails;
             const url = t ? (t['1200'] || t.large || t.small || cd.images[0].image) : cd.images[0].image;
-            albumArtCache[title] = url;
-            return url;
+            artCache[title] = url;
+            if (!coverBlobUrl) showCoverArt(url);
+            updateMediaSession(title, url);
+            return;
           } catch (_) {}
         }
       }
     }
   } catch (_) {}
-  return null;
+}
+
+function showCoverArt(url) {
+  albumArtImg.src = url;
+  albumArtImg.classList.add('loaded');
+  albumArtFallback.style.display = 'none';
+}
+
+function hideAlbumArt() {
+  stopCoverPoll();
+  if (coverBlobUrl) { URL.revokeObjectURL(coverBlobUrl); coverBlobUrl = null; }
+  coverBytes = 0;
+  albumArtImg.src = '';
+  albumArtImg.classList.remove('loaded');
+  albumArtFallback.style.display = '';
 }
 
 function updateMediaSession(title, artworkUrl) {
