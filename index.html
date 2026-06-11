@@ -831,6 +831,22 @@ function hideAlbumArt() {
 async function searchAlbumArt(title) {
   if (albumArtCache[title] !== undefined) return albumArtCache[title];
   albumArtCache[title] = null;
+
+  const ts = Date.now();
+  const localUrl = '/current_cover.jpg?t=' + ts;
+  try {
+    const img = new Image();
+    const loaded = new Promise((resolve, reject) => {
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = localUrl;
+    });
+    if (await loaded) {
+      albumArtCache[title] = localUrl;
+      return localUrl;
+    }
+  } catch (_) {}
+
   try {
     const res = await fetch(
       `https://musicbrainz.org/ws/2/recording/?fmt=json&query=${encodeURIComponent(title)}&limit=3`,
