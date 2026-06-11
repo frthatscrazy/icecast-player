@@ -1242,8 +1242,10 @@ function drawWheel(angle) {
   rCtx.shadowBlur=0;
 
   // --- Ball ---
-  const ba=angle+Math.PI/2;
-  const bx=cx+Math.cos(ba)*R, by=cy+Math.sin(ba)*R*sy-2;
+  const ba = rBallAngle !== null ? rBallAngle : angle + Math.PI/2;
+  const nc=R*0.90;
+  const br = rBallRad > 0 ? R - (R - nc) * Math.min(rBallRad, 1) : R;
+  const bx = cx + Math.cos(ba) * br, by = cy + Math.sin(ba) * br * sy - 2 - rBallBounce;
   rCtx.beginPath(); rCtx.arc(bx,by,5,0,2*Math.PI);
   rCtx.fillStyle='#fff'; rCtx.fill();
   rCtx.shadowBlur=12; rCtx.shadowColor='rgba(255,255,255,0.4)';
@@ -1251,60 +1253,11 @@ function drawWheel(angle) {
   rCtx.shadowBlur=0;
 }
 
-  // --- Outer rim ring ---
-  rCtx.beginPath();
-  rCtx.ellipse(cx,cy,R,R*sy,0,0,2*Math.PI);
-  rCtx.strokeStyle='#777'; rCtx.lineWidth=2; rCtx.stroke();
-
-  // --- Number ring (isometric) ---
-  const nc=R*0.90,rw=16;
-  // inner ring (top of numbers)
-  rCtx.beginPath(); rCtx.ellipse(cx,cy,nc-rw/2,(nc-rw/2)*sy,0,0,2*Math.PI);
-  rCtx.strokeStyle='#b8963a'; rCtx.lineWidth=1.5; rCtx.stroke();
-  // outer ring (bottom of numbers)
-  rCtx.beginPath(); rCtx.ellipse(cx,cy,nc+rw/2,(nc+rw/2)*sy,0,0,2*Math.PI);
-  rCtx.strokeStyle='#b8963a'; rCtx.lineWidth=1.5; rCtx.stroke();
-  // numbers drawn inside isometric space so text compresses with surface
-  rCtx.save(); rCtx.translate(cx,cy); rCtx.scale(1,sy);
-  for(let i=0;i<37;i++){
-    const m=angle+i*seg+seg/2-Math.PI/2,n=R_ORDER[i];
-    const nx=Math.cos(m)*nc, ny=Math.sin(m)*nc;
-    rCtx.save(); rCtx.translate(nx,ny);
-    rCtx.rotate(m-Math.PI/2);
-    rCtx.fillStyle=n===0?'#4f4':'#ddd';
-    rCtx.font='bold 11px monospace'; rCtx.textAlign='center'; rCtx.textBaseline='middle';
-    rCtx.fillText(n,0,0); rCtx.restore();
-  }
-  rCtx.restore();
-
-  // --- Center hub ---
-  rCtx.beginPath();
-  rCtx.ellipse(cx,cy,14,14*sy,0,0,2*Math.PI);
-  rCtx.fillStyle='#151515'; rCtx.fill();
-  rCtx.strokeStyle='#555'; rCtx.lineWidth=2; rCtx.stroke();
-  rCtx.beginPath();
-  rCtx.ellipse(cx,cy,6,6*sy,0,0,2*Math.PI);
-  rCtx.fillStyle='#222'; rCtx.fill();
-  rCtx.strokeStyle='#666'; rCtx.lineWidth=1; rCtx.stroke();
-
-  // --- Pointer ---
-  const px=cx, py=cy-R*sy;
-  rCtx.beginPath();
-  rCtx.moveTo(px-8,py-4); rCtx.lineTo(px+8,py-4); rCtx.lineTo(px,py-18);
-  rCtx.closePath(); rCtx.fillStyle='#ffd700'; rCtx.fill();
-  rCtx.beginPath();
-  rCtx.moveTo(px-4,py-5); rCtx.lineTo(px+4,py-5); rCtx.lineTo(px,py-14);
-  rCtx.closePath(); rCtx.fillStyle='#ffe44d'; rCtx.fill();
-
-  // --- Ball ---
-  const ba=angle+Math.PI/2;
-  const bx=cx+Math.cos(ba)*R, by=cy+Math.sin(ba)*R*sy-3;
-  rCtx.beginPath(); rCtx.arc(bx,by,6,0,2*Math.PI);
-  rCtx.fillStyle='#fff'; rCtx.fill();
-  rCtx.strokeStyle='#aaa'; rCtx.lineWidth=1; rCtx.stroke();
-  rCtx.beginPath(); rCtx.arc(bx-2,by-2,2,0,2*Math.PI);
-  rCtx.fillStyle='rgba(255,255,255,0.5)'; rCtx.fill();
-}
+// --- Ball state ---
+let rBallAngle = null;
+let rBallSpeed = 0;
+let rBallRad = 0;
+let rBallBounce = 0;
 
 (function initRoulette() {
   drawWheel(0);
@@ -1345,22 +1298,57 @@ rSpinBtn.addEventListener('click',()=>{
 
   const result=Math.floor(Math.random()*37);
   const targetIdx=R_ORDER.indexOf(result);
-  const targetAngle=targetIdx*2*Math.PI/37;
+  const seg=2*Math.PI/37;
+  const targetAngle=targetIdx*seg;
   const fullSpins=5+Math.floor(Math.random()*4);
   const totalRotation=fullSpins*2*Math.PI+(2*Math.PI-targetAngle+rWheelAngle);
   const startAngle=rWheelAngle;
   const duration=4000+Math.random()*2000;
   const startTime=performance.now();
 
+  // Ball state
+  rBallAngle = startAngle + Math.PI;
+  rBallSpeed = 0.2 + Math.random() * 0.08;
+  rBallRad = 0;
+  rBallBounce = 0;
+  // Winning pocket angle relative to wheel (center of target segment)
+  const winOffset = -Math.PI/2 + targetIdx * seg + seg/2;
+
   function animate(time){
     const t=Math.min((time-startTime)/duration,1);
     const ease=1-Math.pow(1-t,3);
     rWheelAngle=startAngle+totalRotation*ease;
+
+    // Ball speed decays
+    rBallSpeed *= 0.996;
+    // Ball orbits opposite to wheel direction
+    rBallAngle -= rBallSpeed;
+
+    // Ball drifts inward as speed drops
+    const speedRatio = Math.max(0, rBallSpeed / 0.25);
+    rBallRad = Math.min(1, (1 - speedRatio) * 1.4);
+
+    // Bounce: deflector hits create chaotic oscillation that dampens
+    const bounceAmp = Math.max(0, (1 - t * 1.2)) * 7;
+    const bounceFreq = 60 + t * 80;
+    rBallBounce = bounceAmp > 0.3
+      ? Math.sin(t * bounceFreq + rBallAngle * 6) * bounceAmp
+      : 0;
+
+    // Settle into winning pocket in the final stretch
+    if (t > 0.75) {
+      const settle = (t - 0.75) / 0.25;
+      const targetAbs = rWheelAngle + winOffset;
+      const diff = targetAbs - rBallAngle;
+      rBallAngle += diff * settle * 0.08;
+    }
+
     drawWheel(rWheelAngle);
     if(t<1) rAnimFrame=requestAnimationFrame(animate);
     else {
       rSpinning=false; rSpinBtn.disabled=false;
       rWheelAngle%=2*Math.PI;
+      rBallAngle=null; rBallSpeed=0; rBallRad=0; rBallBounce=0;
       resolveRoulette(result);
     }
   }
