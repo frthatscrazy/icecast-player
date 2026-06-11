@@ -1095,7 +1095,6 @@ function signalTrash(type) {
   if (!msgs) return;
   signalTauntEl.innerHTML = '◎ ' + msgs[Math.floor(Math.random() * msgs.length)];
   signalTauntEl.classList.add('show');
-  setTimeout(() => { signalTauntEl.classList.remove('show'); }, 4000);
 }
 
 function resetGame() {
