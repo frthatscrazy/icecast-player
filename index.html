@@ -866,7 +866,6 @@ async function pollStatus() {
   }
 }
 
-const UA = { headers: { 'User-Agent': 'PirateRadio/1.0 ( birdhau5radio.org )' } };
 const artCache = {};
 
 let coverInterval = null;
@@ -903,43 +902,54 @@ async function pollCover() {
 
 async function pollCoverMusicBrainz() {
   const title = lastTitle;
-  if (!title) return;
+  console.log('[MB] searching for:', title);
+  if (!title) { console.log('[MB] no title, abort'); return; }
   if (artCache[title] !== undefined) {
+    console.log('[MB] cached:', artCache[title] ? 'found' : 'not found');
     if (artCache[title]) showCoverArt(artCache[title]);
     return;
   }
   artCache[title] = null;
   try {
     const res = await fetch(
-      `https://musicbrainz.org/ws/2/recording/?fmt=json&query=${encodeURIComponent(title)}&limit=3`,
-      UA
+      `https://musicbrainz.org/ws/2/recording/?fmt=json&query=${encodeURIComponent(title)}&limit=3`
     );
+    console.log('[MB] musicbrainz status:', res.status);
+    if (!res.ok) { console.log('[MB] musicbrainz not ok'); return; }
     const data = await res.json();
-    if (!data.recordings) return;
+    console.log('[MB] recordings found:', data.recordings ? data.recordings.length : 0);
+    if (!data.recordings) { console.log('[MB] no recordings'); return; }
     for (const rec of data.recordings) {
-      if (!rec.releases) continue;
+      console.log('[MB] checking recording:', rec.title, rec.id);
+      if (!rec.releases) { console.log('[MB] no releases'); continue; }
       for (const rel of rec.releases) {
+        console.log('[MB] checking release:', rel.title, rel.id);
         const rg = rel['release-group'];
         const ids = [];
         if (rg && rg.id) ids.push('release-group/' + rg.id);
         if (rel.id) ids.push('release/' + rel.id);
         for (const ep of ids) {
           try {
-            const c = await fetch(`https://coverartarchive.org/${ep}`, UA);
+            console.log('[MB] fetching coverartarchive:', ep);
+            const c = await fetch(`https://coverartarchive.org/${ep}`);
+            console.log('[MB] coverartarchive status:', c.status);
             if (!c.ok) continue;
             const cd = await c.json();
+            console.log('[MB] coverartarchive images:', cd.images ? cd.images.length : 0);
             if (!cd.images || !cd.images.length) continue;
             const t = cd.images[0].thumbnails;
-            const url = t ? (t['1200'] || t.large || t.small || cd.images[0].image) : cd.images[0].image;
+            const url = (t ? (t['1200'] || t.large || t.small || cd.images[0].image) : cd.images[0].image).replace('http://', 'https://');
+            console.log('[MB] showing art:', url);
             artCache[title] = url;
             showCoverArt(url);
             updateMediaSession(title, url);
             return;
-          } catch (_) {}
+          } catch (e) { console.log('[MB] coverart error:', e); }
         }
       }
     }
-  } catch (_) {}
+    console.log('[MB] no cover art found for any recording');
+  } catch (e) { console.log('[MB] error:', e); }
 }
 
 function showCoverArt(url) {
