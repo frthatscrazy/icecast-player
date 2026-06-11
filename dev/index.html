@@ -73,6 +73,10 @@ body {
   overflow-y: auto;
 }
 
+.container::-webkit-scrollbar { width: 4px; }
+.container::-webkit-scrollbar-track { background: #000; }
+.container::-webkit-scrollbar-thumb { background: #fff; border-radius: 2px; }
+
 .dev-stamp {
   position: absolute;
   top: 0; left: 0;
@@ -98,10 +102,6 @@ body {
   padding: 8px 28px;
   border-radius: 6px;
 }
-
-.container::-webkit-scrollbar { width: 4px; }
-.container::-webkit-scrollbar-track { background: #000; }
-.container::-webkit-scrollbar-thumb { background: #fff; border-radius: 2px; }
 
 h1 {
   font-family: 'Russo One', sans-serif;
@@ -716,6 +716,81 @@ button:active {
   min-height: 1.2em;
 }
 
+.chat-wrap {
+  border: 1px solid #333;
+  margin-top: 12px;
+  background: #050505;
+}
+.chat-wrap .lbl {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  padding: 8px 12px 4px;
+  font-family: 'VT323', monospace;
+}
+.chat-box {
+  height: 260px;
+  overflow-y: auto;
+  padding: 8px 12px;
+  font-family: 'VT323', monospace;
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.chat-msg {
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  word-break: break-word;
+}
+.chat-msg .tag {
+  color: #f44;
+  margin-right: 6px;
+}
+.chat-msg .tag.self { color: #4f4; }
+.chat-msg .time {
+  opacity: 0.3;
+  font-size: 0.75rem;
+  margin-right: 6px;
+}
+.chat-input-row {
+  display: flex;
+  border-top: 1px solid #222;
+}
+.chat-input-row input {
+  flex: 1;
+  background: #0a0a0a;
+  border: none;
+  color: #fff;
+  font-family: 'VT323', monospace;
+  font-size: 0.95rem;
+  padding: 8px 12px;
+  outline: none;
+}
+.chat-input-row input::placeholder { color: #333; }
+.chat-input-row button {
+  flex: 0 0 auto;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-left: 1px solid #222;
+  padding: 8px 16px;
+  font-family: 'VT323', monospace;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+.chat-input-row button:hover { background: #fff; color: #000; }
+.chat-input-row button:disabled { opacity: 0.3; cursor: default; }
+.chat-empty {
+  opacity: 0.3;
+  font-style: italic;
+  padding: 20px 0;
+  text-align: center;
+}
+
 footer {
   margin-top: 14px;
   text-align: center;
@@ -734,7 +809,7 @@ footer {
 </head>
 <body>
 
-  <div class="scanlines"></div>
+<div class="scanlines"></div>
   <div class="crt-overlay"></div>
   <div class="dev-stamp"></div>
 
@@ -881,6 +956,17 @@ footer {
     <button class="r-spin" id="rSpinBtn">SPIN</button>
   </div>
 
+  <div class="chat-wrap">
+    <div class="lbl">&#x1F4E1; SHIP'S CHATTER</div>
+    <div class="chat-box" id="chatBox">
+      <div class="chat-empty">Tune in and join the conversation, Captain!</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Type a message..." maxlength="200">
+      <button id="chatSendBtn">SEND</button>
+    </div>
+  </div>
+
   <footer>
     EST. 1999 // PROTON SECURE NETWORK //<br>
     [UNAUTHORIZED TRANSMISSION]
@@ -925,12 +1011,16 @@ const MAX_HISTORY_POINTS = 60;
 let gameBoard = ['', '', '', '', '', '', '', '', ''];
 let gameTurn = 'X';
 let gameOver = false;
+let aiTimeout = null;
 
 const gameCells = document.querySelectorAll('.game-cell');
 const gameTurnEl = document.getElementById('gameTurn');
 const gameResultEl = document.getElementById('gameResult');
 
-gameCells.forEach(cell => cell.addEventListener('click', () => makeMove(parseInt(cell.dataset.i))));
+gameCells.forEach(cell => cell.addEventListener('click', () => {
+  if (gameTurn !== 'X') return;
+  makeMove(parseInt(cell.dataset.i));
+}));
 
 function makeMove(i) {
   if (gameOver || gameBoard[i]) return;
@@ -966,6 +1056,10 @@ function makeMove(i) {
   }
   gameTurn = gameTurn === 'X' ? 'O' : 'X';
   gameTurnEl.textContent = gameTurn === 'X' ? 'Pirate\'s move ☠' : 'Signal\'s move ◎';
+  if (gameTurn === 'O' && !gameOver) {
+    if (aiTimeout) clearTimeout(aiTimeout);
+    aiTimeout = setTimeout(aiMove, 400 + Math.random() * 400);
+  }
 }
 
 function checkWin(board, player) {
@@ -976,7 +1070,58 @@ function checkWin(board, player) {
   return null;
 }
 
+function minimax(board, depth, isMaximizing) {
+  const winX = checkWin(board, 'X');
+  if (winX) return -10 + depth;
+  const winO = checkWin(board, 'O');
+  if (winO) return 10 - depth;
+  if (!board.includes('')) return 0;
+  if (isMaximizing) {
+    let best = -Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (board[i]) continue;
+      board[i] = 'O';
+      best = Math.max(best, minimax(board, depth + 1, false));
+      board[i] = '';
+    }
+    return best;
+  } else {
+    let best = Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (board[i]) continue;
+      board[i] = 'X';
+      best = Math.min(best, minimax(board, depth + 1, true));
+      board[i] = '';
+    }
+    return best;
+  }
+}
+
+function aiMove() {
+  if (gameOver || gameTurn !== 'O') return;
+  let bestScore = -Infinity;
+  let bestMove = -1;
+  const open = [];
+  for (let i = 0; i < 9; i++) {
+    if (gameBoard[i]) continue;
+    open.push(i);
+    gameBoard[i] = 'O';
+    const score = minimax(gameBoard, 0, false);
+    gameBoard[i] = '';
+    if (score > bestScore) {
+      bestScore = score;
+      bestMove = i;
+    }
+  }
+  if (open.length === 0) return;
+  if (Math.random() < 0.4) {
+    bestMove = open[Math.floor(Math.random() * open.length)];
+  }
+  if (bestMove >= 0) makeMove(bestMove);
+}
+
 function resetGame() {
+  if (aiTimeout) { clearTimeout(aiTimeout); aiTimeout = null; }
   if (tttBet && !gameOver) {
     doubloons += tttBet;
     tttBet = 0;
@@ -1765,6 +1910,54 @@ buildMarquee('');
 setStatus(false);
 pollStatus();
 pollInterval = setInterval(pollStatus, 5000);
+
+const CHAT_URL = 'http://192.168.1.178:8081';
+let chatSince = 0;
+const chatBox = document.getElementById('chatBox');
+const chatInput = document.getElementById('chatInput');
+const chatSendBtn = document.getElementById('chatSendBtn');
+let chatName = 'Pirate_' + Math.random().toString(36).slice(2,6).toUpperCase();
+
+async function pollChat() {
+  try {
+    const r = await fetch(`${CHAT_URL}/messages?since=${chatSince}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d.messages || !d.messages.length) return;
+    const empty = chatBox.querySelector('.chat-empty');
+    if (empty) empty.remove();
+    for (const m of d.messages) {
+      if (m.id <= chatSince) continue;
+      chatSince = m.id;
+      const el = document.createElement('div');
+      el.className = 'chat-msg';
+      const t = new Date(m.time * 1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+      const tagClass = m.name === chatName ? 'tag self' : 'tag';
+      el.innerHTML = `<span class="time">${t}</span><span class="${tagClass}">${escapeHtml(m.name)}</span>${escapeHtml(m.text)}`;
+      chatBox.appendChild(el);
+    }
+    chatBox.scrollTop = chatBox.scrollHeight;
+  } catch (_) {}
+}
+
+async function sendChat() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  chatInput.value = '';
+  try {
+    await fetch(`${CHAT_URL}/send`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name: chatName, text})
+    });
+  } catch (_) {}
+}
+
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+chatSendBtn.addEventListener('click', sendChat);
+
+setInterval(pollChat, 3000);
+setTimeout(pollChat, 500);
 </script>
 </body>
 </html>
