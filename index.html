@@ -898,12 +898,16 @@ const MAX_HISTORY_POINTS = 60;
 let gameBoard = ['', '', '', '', '', '', '', '', ''];
 let gameTurn = 'X';
 let gameOver = false;
+let aiTimeout = null;
 
 const gameCells = document.querySelectorAll('.game-cell');
 const gameTurnEl = document.getElementById('gameTurn');
 const gameResultEl = document.getElementById('gameResult');
 
-gameCells.forEach(cell => cell.addEventListener('click', () => makeMove(parseInt(cell.dataset.i))));
+gameCells.forEach(cell => cell.addEventListener('click', () => {
+  if (gameTurn !== 'X') return;
+  makeMove(parseInt(cell.dataset.i));
+}));
 
 function makeMove(i) {
   if (gameOver || gameBoard[i]) return;
@@ -939,6 +943,10 @@ function makeMove(i) {
   }
   gameTurn = gameTurn === 'X' ? 'O' : 'X';
   gameTurnEl.textContent = gameTurn === 'X' ? 'Pirate\'s move ☠' : 'Signal\'s move ◎';
+  if (gameTurn === 'O' && !gameOver) {
+    if (aiTimeout) clearTimeout(aiTimeout);
+    aiTimeout = setTimeout(aiMove, 400 + Math.random() * 400);
+  }
 }
 
 function checkWin(board, player) {
@@ -949,7 +957,52 @@ function checkWin(board, player) {
   return null;
 }
 
+function minimax(board, depth, isMaximizing) {
+  const winX = checkWin(board, 'X');
+  if (winX) return -10 + depth;
+  const winO = checkWin(board, 'O');
+  if (winO) return 10 - depth;
+  if (!board.includes('')) return 0;
+  if (isMaximizing) {
+    let best = -Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (board[i]) continue;
+      board[i] = 'O';
+      best = Math.max(best, minimax(board, depth + 1, false));
+      board[i] = '';
+    }
+    return best;
+  } else {
+    let best = Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (board[i]) continue;
+      board[i] = 'X';
+      best = Math.min(best, minimax(board, depth + 1, true));
+      board[i] = '';
+    }
+    return best;
+  }
+}
+
+function aiMove() {
+  if (gameOver || gameTurn !== 'O') return;
+  let bestScore = -Infinity;
+  let bestMove = -1;
+  for (let i = 0; i < 9; i++) {
+    if (gameBoard[i]) continue;
+    gameBoard[i] = 'O';
+    const score = minimax(gameBoard, 0, false);
+    gameBoard[i] = '';
+    if (score > bestScore) {
+      bestScore = score;
+      bestMove = i;
+    }
+  }
+  if (bestMove >= 0) makeMove(bestMove);
+}
+
 function resetGame() {
+  if (aiTimeout) { clearTimeout(aiTimeout); aiTimeout = null; }
   if (tttBet && !gameOver) {
     doubloons += tttBet;
     tttBet = 0;
