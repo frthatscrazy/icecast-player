@@ -1200,20 +1200,21 @@ function drawWheel(angle) {
   rCtx.ellipse(cx,cy,R,R*sy,0,0,2*Math.PI);
   rCtx.strokeStyle='#777'; rCtx.lineWidth=2; rCtx.stroke();
 
-  // --- Circular number ring ---
+  // --- Number ring (isometric) ---
   const nc=R*0.62,rw=16;
   // inner ring (top of numbers)
-  rCtx.beginPath(); rCtx.arc(cx,cy,nc-rw/2,0,2*Math.PI);
+  rCtx.beginPath(); rCtx.ellipse(cx,cy,nc-rw/2,(nc-rw/2)*sy,0,0,2*Math.PI);
   rCtx.strokeStyle='#b8963a'; rCtx.lineWidth=1.5; rCtx.stroke();
   // outer ring (bottom of numbers)
-  rCtx.beginPath(); rCtx.arc(cx,cy,nc+rw/2,0,2*Math.PI);
+  rCtx.beginPath(); rCtx.ellipse(cx,cy,nc+rw/2,(nc+rw/2)*sy,0,0,2*Math.PI);
   rCtx.strokeStyle='#b8963a'; rCtx.lineWidth=1.5; rCtx.stroke();
-  // numbers positioned on a true circle (no Y compression)
+  // numbers positioned on the isometric surface
   for(let i=0;i<37;i++){
     const m=angle+i*seg+seg/2-Math.PI/2,n=R_ORDER[i];
-    const nx=cx+Math.cos(m)*nc, ny=cy+Math.sin(m)*nc;
+    const nx=cx+Math.cos(m)*nc, ny=cy+Math.sin(m)*nc*sy;
+    const ea=Math.atan2(Math.sin(m)*sy,Math.cos(m));
     rCtx.save(); rCtx.translate(nx,ny);
-    rCtx.rotate(m-Math.PI/2);
+    rCtx.rotate(ea-Math.PI/2);
     rCtx.fillStyle=n===0?'#4f4':'#ddd';
     rCtx.font='bold 11px monospace'; rCtx.textAlign='center'; rCtx.textBaseline='middle';
     rCtx.fillText(n,0,0); rCtx.restore();
