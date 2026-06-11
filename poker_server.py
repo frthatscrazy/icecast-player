@@ -493,6 +493,17 @@ class PokerHandler(BaseHTTPRequestHandler):
           self.send_json({'ok': False, 'error': 'no game'}, 404)
           return
         self.send_json({'ok': True, **game.get_state(show_signal=game.hand_over)})
+    elif parsed.path == '/new_hand':
+      coffer = min(int(qs.get('coffer', ['500'])[0]), 5000)
+      g = PokerGame(coffer)
+      if g.player_stack <= 0:
+        self.send_json({'ok': False, 'error': 'broke'})
+        return
+      with LOCK:
+        GAMES[g.id] = g
+      if g.turn == 'signal':
+        g.signal_act()
+      self.send_json({'ok': True, **g.get_state(show_signal=g.hand_over)})
     else:
       self.send_json({'ok': False, 'error': 'not found'}, 404)
 
