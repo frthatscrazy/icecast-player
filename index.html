@@ -273,6 +273,14 @@ h1 {
   .game-wrap {
     padding: 8px;
   }
+  .bj-card {
+    width: 1.8em;
+    height: 2.4em;
+    font-size: 0.85rem;
+  }
+  .bj-area {
+    gap: 8px;
+  }
   .container::-webkit-scrollbar { width: 2px; }
 }
 
@@ -495,6 +503,74 @@ button:active {
 
 .game-btn:hover { background: #fff; color: #000; }
 
+.bj-area {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+.bj-hand {
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+}
+.bj-hand-lbl {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  margin-bottom: 4px;
+  font-family: 'VT323', monospace;
+}
+.bj-cards {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  min-height: 2.5em;
+  flex-wrap: wrap;
+}
+.bj-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2em;
+  height: 2.8em;
+  background: #fff;
+  color: #000;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'VT323', monospace;
+  border: 1px solid #555;
+}
+.bj-card.red { color: #c00; }
+.bj-card.facedown { background: #222; color: #222; border-color: #000; }
+.bj-total {
+  font-size: 0.85rem;
+  margin-top: 4px;
+  opacity: 0.7;
+  font-family: 'VT323', monospace;
+}
+.bj-divider {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  opacity: 0.3;
+}
+.bj-btns {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.bj-btns .game-btn { min-width: 60px; }
+.bj-status {
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  min-height: 1.2em;
+}
+
 footer {
   margin-top: 14px;
   text-align: center;
@@ -589,6 +665,29 @@ footer {
     <button class="game-btn" onclick="resetGame()">New Game</button>
   </div>
 
+  <div class="game-wrap">
+    <div class="lbl">&#x1F480; Davy Jones' Blackjack &#x1F3B4;</div>
+    <div class="bj-status" id="bjStatus">Place your bet, Captain</div>
+    <div class="bj-area">
+      <div class="bj-hand">
+        <div class="bj-hand-lbl">DAVY JONES</div>
+        <div class="bj-cards" id="bjDealerCards"></div>
+        <div class="bj-total" id="bjDealerTotal"></div>
+      </div>
+      <div class="bj-divider">&#x2620;</div>
+      <div class="bj-hand">
+        <div class="bj-hand-lbl">CAPTAIN</div>
+        <div class="bj-cards" id="bjPlayerCards"></div>
+        <div class="bj-total" id="bjPlayerTotal"></div>
+      </div>
+    </div>
+    <div class="bj-btns">
+      <button class="game-btn" id="bjHitBtn" onclick="bjHit()">HIT</button>
+      <button class="game-btn" id="bjStandBtn" onclick="bjStand()">STAND</button>
+      <button class="game-btn" onclick="bjDeal()">DEAL</button>
+    </div>
+  </div>
+
   <footer>
     EST. 1999 // PROTON SECURE NETWORK //<br>
     [UNAUTHORIZED TRANSMISSION]
@@ -678,6 +777,93 @@ function resetGame() {
     cell.textContent = '';
     cell.className = 'game-cell';
   });
+}
+
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+
+function bjCreateDeck() {
+  const d = [];
+  for (const s of SUITS) {
+    for (const r of RANKS) {
+      const v = r === 'A' ? 11 : isNaN(r) ? 10 : parseInt(r);
+      d.push({ rank: r, suit: s, value: v, red: s === '♥' || s === '♦' });
+    }
+  }
+  for (let i = d.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [d[i],d[j]] = [d[j],d[i]]; }
+  return d;
+}
+
+let bjDeck = bjCreateDeck();
+let bjPlayer = [];
+let bjDealer = [];
+let bjGameOver = false;
+
+const bjStatusEl = document.getElementById('bjStatus');
+const bjPlayerCardsEl = document.getElementById('bjPlayerCards');
+const bjDealerCardsEl = document.getElementById('bjDealerCards');
+const bjPlayerTotalEl = document.getElementById('bjPlayerTotal');
+const bjDealerTotalEl = document.getElementById('bjDealerTotal');
+const bjHitBtn = document.getElementById('bjHitBtn');
+const bjStandBtn = document.getElementById('bjStandBtn');
+
+function bjVal(hand) {
+  let s = hand.reduce((a,c) => a + c.value, 0);
+  let aces = hand.filter(c => c.rank === 'A').length;
+  while (s > 21 && aces > 0) { s -= 10; aces--; }
+  return s;
+}
+
+function bjCardHTML(c, hide) {
+  if (hide) return '<span class="bj-card facedown">?</span>';
+  return `<span class="bj-card${c.red ? ' red' : ''}">${c.rank}${c.suit}</span>`;
+}
+
+function bjRender(dealerHide) {
+  bjDealerCardsEl.innerHTML = bjDealer.map((c,i) => bjCardHTML(c, dealerHide && i===0)).join('');
+  bjDealerTotalEl.textContent = dealerHide && bjDealer.length ? bjVal(bjDealer.slice(1)) + '+?' : 'Total: ' + bjVal(bjDealer);
+  bjPlayerCardsEl.innerHTML = bjPlayer.map(c => bjCardHTML(c)).join('');
+  bjPlayerTotalEl.textContent = 'Total: ' + bjVal(bjPlayer);
+}
+
+function bjDeal() {
+  if (bjDeck.length < 15) bjDeck = bjCreateDeck();
+  bjPlayer = [bjDeck.pop(), bjDeck.pop()];
+  bjDealer = [bjDeck.pop(), bjDeck.pop()];
+  bjGameOver = false;
+  bjHitBtn.disabled = false;
+  bjStandBtn.disabled = false;
+  bjRender(true);
+  bjStatusEl.textContent = '';
+  const pv = bjVal(bjPlayer);
+  if (pv === 21) { bjEnd(); bjStatusEl.textContent = 'BLACKJACK! Captain takes the booty! 🏴‍☠️'; }
+}
+
+function bjHit() {
+  if (bjGameOver) return;
+  bjPlayer.push(bjDeck.pop());
+  bjRender(true);
+  if (bjVal(bjPlayer) > 21) { bjGameOver = true; bjHitBtn.disabled = true; bjStandBtn.disabled = true; bjRender(false); bjStatusEl.textContent = 'BUST! Davy Jones claims another soul! 💀'; }
+}
+
+function bjStand() {
+  if (bjGameOver) return;
+  bjGameOver = true;
+  bjHitBtn.disabled = true;
+  bjStandBtn.disabled = true;
+  while (bjVal(bjDealer) < 17) bjDealer.push(bjDeck.pop());
+  bjRender(false);
+  bjEnd();
+}
+
+function bjEnd() {
+  const pv = bjVal(bjPlayer);
+  const dv = bjVal(bjDealer);
+  if (pv > 21) return;
+  if (dv > 21) { bjStatusEl.textContent = 'Davy Jones busts! The seas are yours! 🏴‍☠️'; return; }
+  if (pv > dv) { bjStatusEl.textContent = 'Captain wins! Treasure secured! 🏴‍☠️'; return; }
+  if (pv < dv) { bjStatusEl.textContent = 'Davy Jones wins! Walk the plank! 💀'; return; }
+  bjStatusEl.textContent = 'Push! Split the loot! ⚔️';
 }
 
 const messages = [
