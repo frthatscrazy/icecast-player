@@ -2201,7 +2201,7 @@ setStatus(false);
 pollStatus();
 pollInterval = setInterval(pollStatus, 5000);
 
-const CHAT_URL = 'http://192.168.1.178:8081';
+const CHAT_URL = 'https://chat.birdhau5radio.org';
 let chatSince = 0;
 const chatBox = document.getElementById('chatBox');
 const chatInput = document.getElementById('chatInput');
@@ -2249,7 +2249,7 @@ chatSendBtn.addEventListener('click', sendChat);
 setInterval(pollChat, 3000);
 setTimeout(pollChat, 500);
 
-const POKER_URL = 'http://192.168.1.178:8082';
+const POKER_URL = 'https://poker.birdhau5radio.org';
 let pkGameId = null;
 let pkState = null;
 let pkLocked = false;
