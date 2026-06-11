@@ -775,6 +775,9 @@ audio.preload = 'none';
 audio.volume = 0.8;
 
 let isPlaying = false;
+let reconnectAttempts = 0;
+const MAX_RECONNECT = 10;
+let reconnectTimer = null;
 let pollInterval = null;
 let listenerHistory = [];
 let lastTitle = '';
@@ -1262,6 +1265,7 @@ function updateMediaSession(title, artworkUrl) {
 
 function toggleRadio() {
   if (audio.paused) {
+    reconnectAttempts = 0;
     audio.src = STREAM_URL;
     audio.play().then(() => {
       isPlaying = true;
@@ -1281,6 +1285,8 @@ function toggleRadio() {
     audio.pause();
     audio.src = '';
     isPlaying = false;
+    reconnectAttempts = 0;
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
     setStatus(false);
     cancelAnimationFrame(vizFrame);
     document.querySelectorAll('.bar').forEach(b => b.style.height = '4px');
@@ -1293,14 +1299,43 @@ if ('mediaSession' in navigator) {
   navigator.mediaSession.setActionHandler('pause', () => toggleRadio());
 }
 
-audio.addEventListener('waiting', () => statusText.textContent = 'CONNECTING...');
-audio.addEventListener('stalled', () => statusText.textContent = 'SIGNAL WEAK...');
+audio.addEventListener('waiting', () => statusText.textContent = 'BUFFERING...');
+audio.addEventListener('stalled', () => { statusText.textContent = 'SIGNAL WEAK...'; tryReconnect(); });
 audio.addEventListener('error', () => {
   setStatus(false);
   isPlaying = false;
   cancelAnimationFrame(vizFrame);
   document.querySelectorAll('.bar').forEach(b => b.style.height = '4px');
+  tryReconnect();
 });
+
+function tryReconnect() {
+  if (reconnectTimer) return;
+  if (reconnectAttempts >= MAX_RECONNECT) {
+    statusText.textContent = 'SIGNAL LOST';
+    return;
+  }
+  reconnectAttempts++;
+  statusText.textContent = 'RECONNECTING (' + reconnectAttempts + '/' + MAX_RECONNECT + ')...';
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    if (!audio.paused) return;
+    audio.src = STREAM_URL;
+    audio.play().then(() => {
+      reconnectAttempts = 0;
+      isPlaying = true;
+      setStatus(true);
+      statusText.textContent = 'TRANSMITTING...';
+      if (!pollInterval) {
+        pollStatus();
+        pollInterval = setInterval(pollStatus, 5000);
+      }
+    }).catch(() => {
+      reconnectTimer = null;
+      tryReconnect();
+    });
+  }, 3000);
+}
 
 volumeSlider.addEventListener('input', () => {
   audio.volume = volumeSlider.value;
