@@ -856,6 +856,8 @@ async function pollStatus() {
       addTrackEntry(title);
       updateMediaSession(title);
       startCoverPoll();
+    } else if (title && title === lastTitle) {
+      buildMarquee(title);
     } else if (!title && !lastTitle) {
       buildMarquee('');
       updateMediaSession('Live stream');
