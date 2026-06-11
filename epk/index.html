@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE FOOL // EPK</title>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Press+Start+2P&family=Russo+One&family=VT323&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #000;
+  color: #c0c0c0;
+  font-family: 'VT323', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.scanlines {
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);
+  pointer-events: none; z-index: 9999;
+}
+.crt-overlay {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none; z-index: 9998;
+}
+.container {
+  max-width: 800px; margin: 0 auto; padding: 20px; position: relative; z-index: 1;
+}
+h1 {
+  font-family: 'Russo One', sans-serif;
+  font-size: 2.5rem;
+  color: #fff;
+  text-align: center;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+h1 .fool { color: #ffd700; }
+.subhead {
+  text-align: center;
+  color: #666;
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #222;
+  padding-bottom: 16px;
+}
+.nav-row {
+  display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;
+}
+.nav-btn {
+  padding: 4px 12px; border: 1px solid #333; color: #888; text-decoration: none;
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; background: #111;
+  font-family: 'VT323', monospace; cursor: pointer;
+}
+.nav-btn:hover { color: #0f0; border-color: #0f0; }
+.section {
+  border: 1px solid #222; padding: 20px; margin-bottom: 16px; background: #0a0a0a;
+}
+.section-title {
+  color: #666; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px;
+  margin-bottom: 12px; border-bottom: 1px solid #1a1a1a; padding-bottom: 6px;
+}
+.section-title span { color: #ffd700; }
+.profile {
+  display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;
+}
+.profile-img {
+  width: 140px; height: 140px; border-radius: 50%; border: 2px solid #333;
+  object-fit: cover; flex-shrink: 0;
+}
+.profile-img img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.bio { flex: 1; font-size: 1.1rem; line-height: 1.5; color: #aaa; }
+.bio strong { color: #ffd700; }
+.genre-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.genre-tag {
+  padding: 2px 10px; border: 1px solid #333; font-size: 0.75rem; color: #0f0;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.links { display: flex; flex-direction: column; gap: 6px; }
+.link-row {
+  display: flex; align-items: center; gap: 10px; padding: 6px 10px;
+  border: 1px solid #1a1a1a; text-decoration: none; color: #aaa; font-size: 1rem;
+  transition: border-color 0.2s;
+}
+.link-row:hover { border-color: #ffd700; color: #ffd700; }
+.link-row .icon { width: 24px; text-align: center; font-size: 1.2rem; }
+.music-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.music-card {
+  border: 1px solid #1a1a1a; padding: 12px; text-align: center; background: #111;
+  text-decoration: none; color: #aaa; transition: border-color 0.2s;
+}
+.music-card:hover { border-color: #ffd700; }
+.music-card .title { color: #fff; font-size: 1.1rem; margin-bottom: 4px; }
+.music-card .meta { color: #555; font-size: 0.8rem; }
+.contact-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.contact-item {
+  padding: 8px 16px; border: 1px solid #333; color: #888; text-decoration: none;
+  font-size: 0.9rem; background: #111; transition: border-color 0.2s;
+}
+.contact-item:hover { border-color: #0f0; color: #0f0; }
+.divider { border: none; border-top: 1px solid #222; margin: 20px 0; }
+.footer { text-align: center; color: #444; font-size: 0.7rem; padding: 20px 0; }
+.footer a { color: #555; text-decoration: none; }
+.footer a:hover { color: #0f0; }
+.tagline {
+  text-align: center; font-family: 'Creepster', cursive; font-size: 1.8rem;
+  color: #333; letter-spacing: 4px; margin-bottom: 20px;
+}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="crt-overlay"></div>
+
+<div class="container">
+
+  <div class="nav-row">
+    <a href="https://birdhau5radio.org" class="nav-btn">&#x2190; Player</a>
+    <a href="https://birdhau5radio.org/dev/index.html" class="nav-btn">&#x2699; Dev</a>
+    <a href="https://birdhau5radio.org/dashboard.html" class="nav-btn">&#x2622; Dash</a>
+  </div>
+
+  <h1>THE <span class="fool">FOOL</span></h1>
+  <div class="subhead">Calgary, AB // Electronic Press Kit</div>
+
+  <div class="tagline">&#x2620; BUDDING SUPERVILLAIN &#x2620;</div>
+
+  <div class="section">
+    <div class="section-title">&#x2691; <span>Bio</span></div>
+    <div class="profile">
+      <div class="profile-img">
+        <img src="https://i1.sndcdn.com/avatars-DWNLf2D7ktUD4Vtn-v2NODw-t1080x1080.jpg" alt="THE FOOL">
+      </div>
+      <div class="bio">
+        <strong>THE FOOL</strong> is a Calgary-based producer, DJ, and professional narcissist. A self-described budding supervillain and child of DOOM, THE FOOL crafts dark, hard-hitting electronic music that blends elements of <strong>trap, phonk, and bass music</strong> with an unhinged, chaotic energy.
+        <br><br>
+        Drawing from a deep well of influence from the underground, THE FOOL's sound is aggressive, cinematic, and built for maximum destruction on any sound system. Each track is a statement — a middle finger to convention and a love letter to the loud, the reckless, and the foolish.
+        <div class="genre-tags">
+          <span class="genre-tag">Trap</span>
+          <span class="genre-tag">Phonk</span>
+          <span class="genre-tag">Bass</span>
+          <span class="genre-tag">Electronic</span>
+          <span class="genre-tag">Experimental</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">&#x266B; <span>Music</span></div>
+    <div class="music-grid">
+      <a href="https://soundcloud.com/fknfoolish" class="music-card" target="_blank">
+        <div class="title">SoundCloud</div>
+        <div class="meta">Tracks &amp; Sets</div>
+      </a>
+      <a href="https://www.youtube.com/@fknfoolish" class="music-card" target="_blank">
+        <div class="title">YouTube</div>
+        <div class="meta">Music Videos</div>
+      </a>
+      <a href="https://linktr.ee/thef00l" class="music-card" target="_blank">
+        <div class="title">Linktree</div>
+        <div class="meta">All Links</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">&#x1F30D; <span>Connect</span></div>
+    <div class="links">
+      <a href="https://x.com/fknfoolish" class="link-row" target="_blank">
+        <span class="icon">&#x2716;</span> X / Twitter &mdash; @fknfoolish
+      </a>
+      <a href="https://www.instagram.com/fkn.foolish/" class="link-row" target="_blank">
+        <span class="icon">&#x1F4F7;</span> Instagram &mdash; @fkn.foolish
+      </a>
+      <a href="https://soundcloud.com/fknfoolish" class="link-row" target="_blank">
+        <span class="icon">&#x266B;</span> SoundCloud &mdash; /fknfoolish
+      </a>
+      <a href="https://www.youtube.com/@fknfoolish" class="link-row" target="_blank">
+        <span class="icon">&#x25B6;</span> YouTube &mdash; @fknfoolish
+      </a>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">&#x1F4E7; <span>Contact / Booking</span></div>
+    <div class="contact-row">
+      <span class="contact-item">fknfoolish@gmail.com</span>
+    </div>
+    <div style="text-align:center;margin-top:10px;color:#555;font-size:0.8rem">
+      Calgary, Alberta &middot; Available for bookings, collaborations &amp; mayhem
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="footer">
+    <a href="https://birdhau5radio.org">birdhau5radio.org</a> &middot;
+    <span>THE FOOL &#x2620; Fools &amp; Villains</span>
+  </div>
+
+</div>
+
+</body>
+</html>
