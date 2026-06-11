@@ -932,7 +932,7 @@ async function pollCoverMusicBrainz() {
             const t = cd.images[0].thumbnails;
             const url = t ? (t['1200'] || t.large || t.small || cd.images[0].image) : cd.images[0].image;
             artCache[title] = url;
-            if (!coverBlobUrl) showCoverArt(url);
+            showCoverArt(url);
             updateMediaSession(title, url);
             return;
           } catch (_) {}
