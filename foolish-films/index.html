@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOOLISH FILMS // PRODUCTION</title>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Press+Start+2P&family=Russo+One&family=VT323&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #000;
+  color: #c0c0c0;
+  font-family: 'VT323', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.scanlines {
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);
+  pointer-events: none; z-index: 9999;
+}
+.crt-overlay {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none; z-index: 9998;
+}
+.container {
+  max-width: 800px; margin: 0 auto; padding: 20px; position: relative; z-index: 1;
+}
+h1 {
+  font-family: 'Russo One', sans-serif;
+  font-size: 2.8rem;
+  color: #fff;
+  text-align: center;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  margin-bottom: 0;
+}
+h1 .accent { color: #f44; }
+.subhead {
+  text-align: center;
+  color: #666;
+  font-size: 0.85rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #222;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+.nav-row {
+  display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;
+}
+.nav-btn {
+  padding: 4px 12px; border: 1px solid #333; color: #888; text-decoration: none;
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; background: #111;
+  font-family: 'VT323', monospace; cursor: pointer;
+}
+.nav-btn:hover { color: #f44; border-color: #f44; }
+.tagline {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #555;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.section {
+  border: 1px solid #222; padding: 20px; margin-bottom: 16px; background: #0a0a0a;
+}
+.section-title {
+  color: #666; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px;
+  margin-bottom: 12px; border-bottom: 1px solid #1a1a1a; padding-bottom: 6px;
+}
+.section-title span { color: #f44; }
+.grid-2 {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;
+}
+.service-card {
+  border: 1px solid #1a1a1a; padding: 14px; text-align: center; background: #111;
+}
+.service-card .icon { font-size: 2rem; margin-bottom: 6px; }
+.service-card .name { color: #fff; font-size: 1rem; margin-bottom: 4px; }
+.service-card .desc { color: #555; font-size: 0.8rem; }
+.project-card {
+  border: 1px solid #1a1a1a; padding: 14px; background: #111; text-decoration: none; color: #aaa;
+  display: block; transition: border-color 0.2s;
+}
+.project-card:hover { border-color: #f44; }
+.project-card .proj-title { color: #fff; font-size: 1.1rem; }
+.project-card .proj-role { color: #f44; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+.project-card .proj-desc { color: #555; font-size: 0.85rem; margin-top: 4px; }
+.contact-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.contact-item {
+  padding: 8px 16px; border: 1px solid #333; color: #888; text-decoration: none;
+  font-size: 0.9rem; background: #111; transition: border-color 0.2s;
+}
+.contact-item:hover { border-color: #f44; color: #f44; }
+.footer { text-align: center; color: #444; font-size: 0.7rem; padding: 20px 0; }
+.footer a { color: #555; text-decoration: none; }
+.footer a:hover { color: #f44; }
+.clapper {
+  text-align: center; font-size: 3rem; margin-bottom: 10px; line-height: 1;
+}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="crt-overlay"></div>
+
+<div class="container">
+
+  <div class="nav-row">
+    <a href="https://birdhau5radio.org" class="nav-btn">&#x2190; Player</a>
+    <a href="https://birdhau5radio.org/dev/index.html" class="nav-btn">&#x2699; Dev</a>
+    <a href="https://birdhau5radio.org/dashboard.html" class="nav-btn">&#x2622; Dash</a>
+    <a href="https://birdhau5radio.org/epk/index.html" class="nav-btn">&#x1F3B5; EPK</a>
+  </div>
+
+  <div class="clapper">&#x1F3AC;</div>
+  <h1>FOOLISH <span class="accent">FILMS</span></h1>
+  <div class="subhead">Motion Picture Production // Calgary, AB</div>
+  <div class="tagline">&#x2605; FROM CONCEPT TO CUT &#x2605;</div>
+
+  <div class="section">
+    <div class="section-title">&#x1F4FD; <span>About</span></div>
+    <p style="font-size:1.1rem;line-height:1.5;color:#aaa">
+      <strong style="color:#f44">Foolish Films</strong> is a Calgary-based film production company built for storytellers who refuse to play it safe. From music videos and commercial work to narrative shorts and experimental projects, we bring a punk-rock, DIY ethos to every frame. No red tape. No focus groups. Just raw, honest cinema.
+    </p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">&#x2692; <span>Services</span></div>
+    <div class="grid-2">
+      <div class="service-card">
+        <div class="icon">&#x1F3AC;</div>
+        <div class="name">Music Videos</div>
+        <div class="desc">Concept to final cut — narrative, performance, or abstract</div>
+      </div>
+      <div class="service-card">
+        <div class="icon">&#x1F4FA;</div>
+        <div class="name">Commercial</div>
+        <div class="desc">Brand content, product spots, social media campaigns</div>
+      </div>
+      <div class="service-card">
+        <div class="icon">&#x1F3AD;</div>
+        <div class="name">Narrative</div>
+        <div class="desc">Short films, web series, festival-ready storytelling</div>
+      </div>
+      <div class="service-card">
+        <div class="icon">&#x270F;&#xFE0F;</div>
+        <div class="name">Post-Production</div>
+        <div class="desc">Editing, color grading, sound design, VFX</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">&#x1F3C6; <span>Projects</span></div>
+    <div class="grid-2">
+      <a href="https://www.youtube.com/@fknfoolish" class="project-card" target="_blank">
+        <div class="proj-title">Dahlia</div>
+        <div class="proj-role">Director / Editor</div>
+        <div class="proj-desc">Official music video for THE FOOL. Dark cinematic visuals.</div>
+      </a>
+      <div class="project-card" style="opacity:0.4;cursor:default">
+        <div class="proj-title">TBA</div>
+        <div class="proj-role">In Development</div>
+        <div class="proj-desc">Upcoming projects in pre-production</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">&#x1F4E7; <span>Contact</span></div>
+    <div class="contact-row">
+      <span class="contact-item">foolishfilms@gmail.com</span>
+      <span class="contact-item">Calgary, AB</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="https://birdhau5radio.org">birdhau5radio.org</a> &middot;
+    <span>FOOLISH FILMS &mdash; Fools &amp; Villains Productions</span>
+  </div>
+
+</div>
+
+</body>
+</html>
