@@ -811,6 +811,146 @@ button:active {
   text-align: center;
 }
 
+.poker-wrap {
+  border: 1px solid #333;
+  padding: 12px;
+  margin-top: 12px;
+  background: #050505;
+  text-align: center;
+}
+.poker-wrap .lbl {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  margin-bottom: 4px;
+  font-family: 'VT323', monospace;
+}
+.poker-table {
+  position: relative;
+  border: 1px solid #1a3a1a;
+  border-radius: 8px;
+  padding: 10px;
+  background: #0a1a0a;
+  min-height: 180px;
+}
+.pk-community {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-bottom: 8px;
+  min-height: 2.8em;
+}
+.pk-community .pk-card {
+  width: 2em;
+  height: 2.8em;
+}
+.pk-players {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.pk-player-area {
+  text-align: center;
+}
+.pk-player-lbl {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  font-family: 'VT323', monospace;
+  margin-bottom: 2px;
+}
+.pk-cards {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  min-height: 2.5em;
+}
+.pk-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 2.6em;
+  background: #fff;
+  color: #000;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: 'VT323', monospace;
+  border: 1px solid #555;
+}
+.pk-card.red { color: #c00; }
+.pk-card.back {
+  background: #2a1a0a;
+  color: #d4a040;
+  border-color: #6a4a1a;
+  font-size: 1.1rem;
+}
+.pk-info {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 0.85rem;
+  margin: 6px 0;
+  font-family: 'VT323', monospace;
+}
+.pk-info span { opacity: 0.8; }
+.pk-info .pk-val { color: #ffd700; opacity: 1; }
+.pk-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 6px 0;
+}
+.pk-actions .game-btn {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  min-width: 50px;
+}
+.pk-actions .game-btn:disabled { opacity: 0.25; cursor: default; }
+.pk-actions .game-btn:disabled:hover { background: #000; color: #fff; }
+.pk-raise-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 4px 0;
+  font-size: 0.8rem;
+}
+.pk-raise-row input[type="range"] {
+  width: 100px;
+  height: 3px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #333;
+  border-radius: 2px;
+  outline: none;
+}
+.pk-raise-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffd700;
+  cursor: pointer;
+}
+.pk-raise-val {
+  color: #ffd700;
+  font-weight: 700;
+  min-width: 30px;
+}
+.pk-status {
+  font-size: 0.8rem;
+  min-height: 1.2em;
+  margin-top: 4px;
+  color: #4f4;
+  font-family: 'VT323', monospace;
+}
+
 footer {
   margin-top: 14px;
   text-align: center;
@@ -975,6 +1115,57 @@ footer {
       <div class="bj-bet">Bet: <span id="rBet">0</span> &#x1FA99;  | Coffer: <span id="rouletteCoffer">500</span> &#x1FA99;</div>
     </div>
     <button class="r-spin" id="rSpinBtn">SPIN</button>
+  </div>
+
+  <div class="poker-wrap">
+    <div class="lbl">&#x2660; Pirate Poker &#x2665;</div>
+    <div class="poker-table">
+      <div class="pk-community" id="pkCommunity">
+        <span class="pk-card back">?</span>
+        <span class="pk-card back">?</span>
+        <span class="pk-card back">?</span>
+        <span class="pk-card back">?</span>
+        <span class="pk-card back">?</span>
+      </div>
+      <div class="pk-players">
+        <div class="pk-player-area">
+          <div class="pk-player-lbl">&#x2622; Signal</div>
+          <div class="pk-cards" id="pkSignalCards">
+            <span class="pk-card back">?</span>
+            <span class="pk-card back">?</span>
+          </div>
+          <div class="pk-player-lbl" style="margin-top:2px">Stack: <span id="pkSignalStack" class="pk-val">500</span></div>
+        </div>
+        <div class="pk-player-area">
+          <div class="pk-player-lbl">&#x2620; Captain</div>
+          <div class="pk-cards" id="pkPlayerCards">
+            <span class="pk-card back">?</span>
+            <span class="pk-card back">?</span>
+          </div>
+          <div class="pk-player-lbl" style="margin-top:2px">Stack: <span id="pkPlayerStack" class="pk-val">500</span></div>
+        </div>
+      </div>
+      <div class="pk-info">
+        <span>Pot: <span id="pkPot" class="pk-val">0</span> &#x1FA99;</span>
+        <span>Bet: <span id="pkBet" class="pk-val">0</span> &#x1FA99;</span>
+      </div>
+      <div class="pk-actions" id="pkActions">
+        <button class="game-btn" data-pk="fold" id="pkFold">FOLD</button>
+        <button class="game-btn" data-pk="check" id="pkCheck">CHECK</button>
+        <button class="game-btn" data-pk="call" id="pkCall">CALL</button>
+        <button class="game-btn" data-pk="raise" id="pkRaiseBtn">RAISE</button>
+        <button class="game-btn" data-pk="allin" id="pkAllin">ALL IN</button>
+      </div>
+      <div class="pk-raise-row">
+        <span>Raise:</span>
+        <input type="range" id="pkRaiseSlider" min="10" max="500" step="5" value="20">
+        <span class="pk-raise-val" id="pkRaiseVal">20</span>
+        <button class="game-btn" id="pkHalfPot" style="padding:2px 8px;font-size:0.75rem">1/2 POT</button>
+        <button class="game-btn" id="pkPotBtn" style="padding:2px 8px;font-size:0.75rem">POT</button>
+      </div>
+      <div class="pk-status" id="pkStatus">Deal a hand to play!</div>
+    </div>
+    <button class="game-btn" id="pkDealBtn" style="margin-top:6px">DEAL HAND</button>
   </div>
 
   <div class="chat-wrap">
@@ -2057,6 +2248,198 @@ chatSendBtn.addEventListener('click', sendChat);
 
 setInterval(pollChat, 3000);
 setTimeout(pollChat, 500);
+
+const POKER_URL = 'http://192.168.1.178:8082';
+let pkGameId = null;
+let pkState = null;
+let pkLocked = false;
+
+const pkCommunity = document.getElementById('pkCommunity');
+const pkPlayerCards = document.getElementById('pkPlayerCards');
+const pkSignalCards = document.getElementById('pkSignalCards');
+const pkPot = document.getElementById('pkPot');
+const pkBet = document.getElementById('pkBet');
+const pkPlayerStack = document.getElementById('pkPlayerStack');
+const pkSignalStack = document.getElementById('pkSignalStack');
+const pkStatus = document.getElementById('pkStatus');
+const pkFold = document.getElementById('pkFold');
+const pkCheck = document.getElementById('pkCheck');
+const pkCall = document.getElementById('pkCall');
+const pkRaiseBtn = document.getElementById('pkRaiseBtn');
+const pkAllin = document.getElementById('pkAllin');
+const pkRaiseSlider = document.getElementById('pkRaiseSlider');
+const pkRaiseVal = document.getElementById('pkRaiseVal');
+const pkDealBtn = document.getElementById('pkDealBtn');
+const pkHalfPot = document.getElementById('pkHalfPot');
+const pkPotBtn = document.getElementById('pkPotBtn');
+
+const pkSuits = {'s':'\u2660','h':'\u2665','d':'\u2666','c':'\u2663'};
+const pkRed = new Set(['h','d']);
+
+function pkCardHTML(card, hide) {
+  if (hide || !card) return '<span class="pk-card back">?</span>';
+  const r = card[0], s = card[1];
+  const red = pkRed.has(s);
+  return `<span class="pk-card${red?' red':''}">${r}${pkSuits[s]}</span>`;
+}
+
+function pkParseCard(s) {
+  return s; // already 'Ah' format
+}
+
+function pkRender() {
+  if (!pkState) return;
+  const s = pkState;
+  // Community
+  let com = s.community || '';
+  let comArr = [];
+  for (let i = 0; i < com.length; i += 2) comArr.push(com.substr(i, 2));
+  while (comArr.length < 5) comArr.push(null);
+  pkCommunity.innerHTML = comArr.map(c => pkCardHTML(c, false)).join('');
+
+  // Player cards
+  let ph = s.player_hand || '';
+  let phArr = [];
+  for (let i = 0; i < ph.length; i += 2) phArr.push(ph.substr(i, 2));
+  while (phArr.length < 2) phArr.push(null);
+  pkPlayerCards.innerHTML = phArr.map(c => pkCardHTML(c, false)).join('');
+
+  // Signal cards
+  let sh = s.signal_hand || '';
+  let shArr = [];
+  for (let i = 0; i < sh.length; i += 2) shArr.push(sh.substr(i, 2));
+  while (shArr.length < 2) shArr.push(null);
+  const hideSignal = !s.hand_over && s.phase !== '';
+  pkSignalCards.innerHTML = shArr.map(c => pkCardHTML(c, hideSignal)).join('');
+
+  pkPot.textContent = s.pot || 0;
+  pkBet.textContent = s.current_bet || 0;
+  pkPlayerStack.textContent = s.player_stack || 0;
+  pkSignalStack.textContent = s.signal_stack || 0;
+  pkStatus.textContent = s.result || (s.last_action ? '◎ ' + s.last_action : 'Deal a hand to play!');
+  if (s.hand_over) pkStatus.style.color = '#ffd700';
+  else pkStatus.style.color = '#4f4';
+
+  const myTurn = !s.hand_over && s.turn === 'player';
+  pkFold.disabled = !myTurn;
+  pkCheck.disabled = !myTurn;
+  pkCall.disabled = !myTurn;
+  pkRaiseBtn.disabled = !myTurn;
+  pkAllin.disabled = !myTurn;
+
+  if (myTurn && !pkLocked) {
+    const toCall = Math.max(0, (s.current_bet || 0) - (s.player_bet || 0));
+    const stack = s.player_stack || 0;
+    pkCheck.textContent = toCall === 0 ? 'CHECK' : 'FOLD';
+    pkCall.textContent = toCall > 0 ? 'CALL ' + toCall : '-';
+
+    if (toCall === 0) {
+      pkFold.style.display = 'none';
+      pkCheck.style.display = '';
+      pkCall.style.display = 'none';
+    } else {
+      pkFold.style.display = '';
+      pkCheck.style.display = 'none';
+      pkCall.style.display = '';
+    }
+
+    const minRaise = Math.min(stack, Math.max(20, (s.last_raise || 10) * 2));
+    const maxRaise = stack;
+    pkRaiseSlider.min = minRaise;
+    pkRaiseSlider.max = Math.max(minRaise, maxRaise);
+    pkRaiseSlider.value = Math.min(Math.max(parseInt(pkRaiseSlider.value) || minRaise, minRaise), maxRaise);
+    pkRaiseVal.textContent = pkRaiseSlider.value;
+  } else {
+    pkFold.style.display = '';
+    pkCheck.style.display = '';
+    pkCall.style.display = '';
+    pkCheck.textContent = 'CHECK';
+    pkCall.textContent = 'CALL';
+  }
+}
+
+pkRaiseSlider.addEventListener('input', () => {
+  pkRaiseVal.textContent = pkRaiseSlider.value;
+});
+
+pkHalfPot.addEventListener('click', () => {
+  if (!pkState) return;
+  const pot = pkState.pot || 0;
+  const val = Math.max(parseInt(pkRaiseSlider.min) || 10, Math.min(Math.floor(pot / 2), parseInt(pkRaiseSlider.max) || 500));
+  pkRaiseSlider.value = val;
+  pkRaiseVal.textContent = val;
+});
+
+pkPotBtn.addEventListener('click', () => {
+  if (!pkState) return;
+  const pot = pkState.pot || 0;
+  const val = Math.max(parseInt(pkRaiseSlider.min) || 10, Math.min(pot, parseInt(pkRaiseSlider.max) || 500));
+  pkRaiseSlider.value = val;
+  pkRaiseVal.textContent = val;
+});
+
+async function pkDeal() {
+  const coffer = doubloons || 500;
+  if (coffer < 5) { pkStatus.textContent = 'Not enough doubloons!'; return; }
+  pkLocked = false;
+  try {
+    const r = await fetch(POKER_URL + '/new_hand?coffer=' + coffer);
+    const d = await r.json();
+    if (!d.ok) { pkStatus.textContent = 'Error: ' + (d.error || ''); return; }
+    pkGameId = d.id;
+    pkState = d;
+    pkStatus.style.color = '#4f4';
+    pkRender();
+    if (d.hand_over) {
+      doubloons = Math.max(0, coffer + (d.coffer_delta || 0));
+      refreshDoubloons();
+    }
+  } catch (e) { pkStatus.textContent = 'Connection error'; }
+}
+
+async function pkAct(action, amount) {
+  if (!pkGameId || !pkState || pkLocked) return;
+  if (pkState.hand_over) return;
+  if (pkState.turn !== 'player') return;
+  pkLocked = true;
+  try {
+    const r = await fetch(POKER_URL + '/act', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({game_id: pkGameId, action, amount: amount || 0})
+    });
+    const d = await r.json();
+    if (!d.ok) { pkLocked = false; pkStatus.textContent = 'Invalid: ' + (d.error || ''); return; }
+    pkState = d;
+    const cofferBefore = doubloons;
+    if (d.hand_over) {
+      doubloons = Math.max(0, (d.player_stack || 0));
+      refreshDoubloons();
+    }
+    pkRender();
+  } catch (e) { pkStatus.textContent = 'Connection error'; }
+  pkLocked = false;
+  // If it's still player's turn (signal checked), re-enable
+  if (pkState && pkState.turn === 'player' && !pkState.hand_over) {
+    pkRender();
+  }
+}
+
+pkFold.addEventListener('click', () => pkAct('fold'));
+pkCheck.addEventListener('click', () => pkAct('check'));
+pkCall.addEventListener('click', () => {
+  const toCall = pkState ? Math.max(0, (pkState.current_bet||0) - (pkState.player_bet||0)) : 0;
+  pkAct('call', toCall);
+});
+pkRaiseBtn.addEventListener('click', () => {
+  const amt = parseInt(pkRaiseSlider.value) || 0;
+  if (amt <= 0) return;
+  const stack = pkState ? (pkState.player_stack || 0) : 0;
+  if (amt >= stack) pkAct('all_in');
+  else pkAct('raise', amt);
+});
+pkAllin.addEventListener('click', () => pkAct('all_in'));
+pkDealBtn.addEventListener('click', pkDeal);
 </script>
 </body>
 </html>
