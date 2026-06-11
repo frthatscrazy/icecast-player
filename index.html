@@ -856,7 +856,6 @@ async function pollStatus() {
       addTrackEntry(title);
       updateMediaSession(title);
       startCoverPoll();
-      searchFallbackArt(title);
     } else if (!title && !lastTitle) {
       buildMarquee('');
       updateMediaSession('Live stream');
@@ -877,8 +876,12 @@ let mbFallbackTimer = null;
 
 function startCoverPoll() {
   stopCoverPoll();
+  if (coverBlobUrl) { URL.revokeObjectURL(coverBlobUrl); coverBlobUrl = null; }
+  coverBytes = 0;
+  albumArtImg.src = '';
+  albumArtImg.classList.remove('loaded');
+  albumArtFallback.style.display = '';
   coverInterval = setInterval(pollCover, 3000);
-  pollCover();
   mbFallbackTimer = setTimeout(pollCoverMusicBrainz, 12000);
 }
 
