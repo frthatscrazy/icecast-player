@@ -869,7 +869,7 @@ const bjBetEl = document.getElementById('bjBet');
 
 document.querySelectorAll('.bj-chip').forEach(el => {
   el.addEventListener('click', () => {
-    if (bjGameOver || bjPlayer.length) return;
+    if (bjPlayer.length && !bjGameOver) return;
     const val = parseInt(el.dataset.val);
     if (val > bjBalance) return;
     bjBalance -= val;
