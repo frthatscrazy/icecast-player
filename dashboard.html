@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONTROL PANEL // PIRATE RADIO</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0a; color: #c0c0c0; font-family: 'Courier New', monospace; padding: 20px; min-height: 100vh; }
+.header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 12px; margin-bottom: 20px; }
+.header h1 { color: #fff; font-size: 1.4rem; letter-spacing: 3px; text-transform: uppercase; }
+.header .sub { color: #666; font-size: 0.8rem; }
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border: 1px solid #333; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+.status-badge .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.on { background: #0f0; box-shadow: 0 0 6px #0f0; }
+.dot.off { background: #f00; box-shadow: 0 0 6px #f00; }
+.dot.warn { background: #ff0; box-shadow: 0 0 6px #ff0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.card { background: #111; border: 1px solid #222; padding: 14px; }
+.card-title { color: #666; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border-bottom: 1px solid #1a1a1a; padding-bottom: 6px; }
+.card-body { font-size: 0.85rem; line-height: 1.6; }
+.row { display: flex; justify-content: space-between; padding: 2px 0; }
+.row .lbl { color: #666; }
+.row .val { color: #ddd; text-align: right; }
+.row .val.highlight { color: #0f0; }
+.row .val.warn { color: #ff0; }
+.row .val.danger { color: #f00; }
+.chart-wrap { background: #111; border: 1px solid #222; padding: 14px; margin-bottom: 20px; }
+.chart-wrap canvas { width: 100%; height: 180px; display: block; }
+.history-wrap { background: #111; border: 1px solid #222; padding: 14px; margin-bottom: 20px; max-height: 300px; overflow-y: auto; }
+.history-wrap::-webkit-scrollbar { width: 4px; }
+.history-wrap::-webkit-scrollbar-track { background: #111; }
+.history-wrap::-webkit-scrollbar-thumb { background: #333; }
+.history-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #1a1a1a; font-size: 0.8rem; }
+.history-item .time { color: #555; width: 80px; flex-shrink: 0; }
+.history-item .song { color: #aaa; }
+.latency-bar { position: relative; height: 24px; background: #1a1a1a; margin: 8px 0; overflow: hidden; }
+.latency-bar .fill { height: 100%; background: linear-gradient(90deg, #0f0, #ff0, #f00); transition: width 1s; }
+.latency-bar .label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.7rem; color: #000; font-weight: bold; }
+.lag-display { text-align: center; padding: 12px; border: 1px solid #333; margin: 8px 0; }
+.lag-display .num { font-size: 2.5rem; color: #0f0; font-weight: bold; }
+.lag-display .unit { color: #666; font-size: 0.8rem; }
+.badges { margin-top: 20px; padding: 10px; border-top: 1px solid #222; text-align: center; font-size: 0.7rem; color: #444; }
+.badges a { color: #555; text-decoration: none; }
+.badges a:hover { color: #0f0; }
+@media (max-width: 600px) { body { padding: 10px; } .grid { grid-template-columns: 1fr; } .header { flex-direction: column; gap: 8px; text-align: center; } .header h1 { font-size: 1.1rem; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div><h1>&#x2622; CONTROL PANEL</h1><div class="sub">birdhau5radio.org / internal telemetry</div></div>
+  <div><span class="status-badge" id="serverBadge"><span class="dot off" id="statusDot"></span><span id="statusLabel">OFFLINE</span></span></div>
+</div>
+<div class="grid">
+  <div class="card"><div class="card-title">Stream</div><div class="card-body">
+    <div class="row"><span class="lbl">Title</span><span class="val" id="sTitle">--</span></div>
+    <div class="row"><span class="lbl">Bitrate</span><span class="val" id="sBitrate">--</span></div>
+    <div class="row"><span class="lbl">Format</span><span class="val" id="sFormat">--</span></div>
+    <div class="row"><span class="lbl">Stream Name</span><span class="val" id="sName">--</span></div>
+    <div class="row"><span class="lbl">Stream Uptime</span><span class="val" id="sUptime">--</span></div>
+  </div></div>
+  <div class="card"><div class="card-title">Source</div><div class="card-body">
+    <div class="row"><span class="lbl">Source IP</span><span class="val" id="srcIP">--</span></div>
+    <div class="row"><span class="lbl">User Agent</span><span class="val" id="srcUA">--</span></div>
+    <div class="row"><span class="lbl">Bytes Read</span><span class="val" id="srcBytesRead">--</span></div>
+    <div class="row"><span class="lbl">Bytes Sent</span><span class="val" id="srcBytesSent">--</span></div>
+    <div class="row"><span class="lbl">Buffer Backlog</span><span class="val warn" id="srcBacklog">--</span></div>
+  </div></div>
+  <div class="card"><div class="card-title">Listeners</div><div class="card-body">
+    <div class="row"><span class="lbl">Current</span><span class="val highlight" id="lCurrent">0</span></div>
+    <div class="row"><span class="lbl">Peak</span><span class="val" id="lPeak">0</span></div>
+    <div class="row"><span class="lbl">Slow</span><span class="val" id="lSlow">0</span></div>
+    <div class="row"><span class="lbl">Total Connections</span><span class="val" id="lTotal">0</span></div>
+  </div></div>
+  <div class="card"><div class="card-title">Server</div><div class="card-body">
+    <div class="row"><span class="lbl">Version</span><span class="val" id="svVersion">--</span></div>
+    <div class="row"><span class="lbl">Started</span><span class="val" id="svStarted">--</span></div>
+    <div class="row"><span class="lbl">Uptime</span><span class="val" id="svUptime">--</span></div>
+    <div class="row"><span class="lbl">Clients</span><span class="val" id="svClients">--</span></div>
+    <div class="row"><span class="lbl">Queue Max</span><span class="val" id="svQueue">--</span></div>
+  </div></div>
+</div>
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-title">Latency Estimate</div>
+  <div class="card-body">
+    <div class="lag-display"><div class="num" id="lagTotal">--</div><div class="unit">seconds behind live (estimated)</div></div>
+    <div class="latency-bar"><div class="fill" id="lagFill" style="width:0%"></div><div class="label">buffers</div></div>
+    <div class="row"><span class="lbl">Browser buffer</span><span class="val" id="lagBrowser">--</span></div>
+    <div class="row"><span class="lbl">Icecast queue</span><span class="val" id="lagQueue">--</span></div>
+    <div class="row"><span class="lbl">Burst size</span><span class="val" id="lagBurst">65536 bytes (~4s)</span></div>
+    <div class="row" style="margin-top:8px;padding-top:8px;border-top:1px solid #222;">
+      <span class="lbl">Test stream</span>
+      <span class="val"><button onclick="toggleStream()" id="streamBtn" style="background:#111;color:#0f0;border:1px solid #0f0;padding:4px 12px;font-family:inherit;cursor:pointer;font-size:0.75rem;">LOAD STREAM</button></span>
+    </div>
+  </div>
+</div>
+<div class="chart-wrap">
+  <div class="card-title" style="margin-bottom:8px;">Listener Signal (last 30 min)</div>
+  <canvas id="listenerChart"></canvas>
+</div>
+<div class="history-wrap" id="historyWrap">
+  <div class="card-title" style="border-bottom:0;padding-bottom:0;">Track History</div>
+  <div id="historyList"><div style="color:#444;padding:8px 0;font-size:0.8rem;">No tracks yet</div></div>
+</div>
+<div class="badges">
+  <a href="https://birdhau5radio.org">&#x2190; Player</a> &middot; <span id="updateTime">--</span> &middot; <span>protected by Cloudflare Access</span>
+</div>
+<script>
+const STATUS_URL = 'https://birdhau5radio.org/status-json.xsl';
+const STREAM_URL = 'https://birdhau5radio.org/stream';
+const HISTORY_URL = 'https://birdhau5radio.org/track_history.json';
+const POLL_INTERVAL = 3000;
+const HISTORY_POINTS = 360;
+const audio = new Audio();
+audio.preload = 'none';
+audio.volume = 0.5;
+let isStreamLoaded = false;
+let pollTimer = null;
+let listenerHistory = [];
+let trackHistory = [];
+let lastTitle = '';
+let histLoaded = false;
+
+async function loadHistory() {
+  try {
+    const r = await fetch(HISTORY_URL);
+    const h = await r.json();
+    if (Array.isArray(h) && h.length) {
+      trackHistory = h;
+      lastTitle = h[0].title || '';
+      renderHistory();
+    }
+  } catch (e) {}
+  histLoaded = true;
+}
+function fixEncoding(s) { try { return decodeURIComponent(escape(s)); } catch (e) { return s; } }
+function fmtBytes(n) { if (!n) return '0'; const u = ['B','KB','MB','GB']; let i = 0; let v = n; while (v >= 1024 && i < u.length-1) { v/=1024; i++; } return v.toFixed(i>0?1:0)+' '+u[i]; }
+function fmtTime(ts) { if (!ts) return '--'; return new Date(ts).toLocaleTimeString(); }
+function fmtDuration(sec) { if (!sec||sec<0) return '--'; const h=Math.floor(sec/3600); const m=Math.floor((sec%3600)/60); const s=Math.floor(sec%60); if(h>0)return h+'h '+m+'m '+s+'s'; if(m>0)return m+'m '+s+'s'; return s+'s'; }
+function setOnline(ok) { document.getElementById('statusDot').className='dot '+(ok?'on':'off'); document.getElementById('statusLabel').textContent=ok?'ONLINE':'OFFLINE'; }
+function poll() {
+  fetch(STATUS_URL).then(r=>r.json()).then(data=>{
+    setOnline(true); const src=data.icestats.source; const ss=data.icestats;
+    document.getElementById('updateTime').textContent='Updated: '+new Date().toLocaleTimeString();
+    if (src&&src.server_name) {
+      document.getElementById('sTitle').textContent=fixEncoding(src.title||'(no title)');
+      document.getElementById('sBitrate').textContent=(src.bitrate||src['ice-bitrate']||'?')+' kbps';
+      document.getElementById('sFormat').textContent=(src.server_type||'--').split(';')[0];
+      document.getElementById('sName').textContent=src.server_name;
+      const st=new Date(src.stream_start_iso8601); if(st) document.getElementById('sUptime').textContent=fmtDuration((Date.now()-st.getTime())/1000);
+      document.getElementById('lCurrent').textContent=src.listeners||0;
+      document.getElementById('lPeak').textContent=src.listener_peak||0;
+      document.getElementById('lSlow').textContent=src.slow_listeners||0;
+      document.getElementById('lTotal').textContent=ss.listener_connections||0;
+      document.getElementById('srcIP').textContent=src.source_ip||'--';
+      document.getElementById('srcUA').textContent=(src.user_agent||'--').substring(0,40);
+      const br=parseInt(src.total_bytes_read)||0, bs=parseInt(src.total_bytes_sent)||0;
+      document.getElementById('srcBytesRead').textContent=fmtBytes(br);
+      document.getElementById('srcBytesSent').textContent=fmtBytes(bs);
+      const bl=br-bs; document.getElementById('srcBacklog').textContent=fmtBytes(bl);
+      document.getElementById('srcBacklog').className='val '+(bl>10000000?'danger':bl>1000000?'warn':'');
+      const sv=new Date(ss.server_start_iso8601);
+      if(sv) document.getElementById('svUptime').textContent=fmtDuration((Date.now()-sv.getTime())/1000);
+      document.getElementById('svStarted').textContent=sv?sv.toLocaleString():'--';
+      document.getElementById('svVersion').textContent=ss.server_id||'--';
+      document.getElementById('svClients').textContent=ss.clients||'--';
+      document.getElementById('svQueue').textContent='524288 bytes (~32s)';
+      const t=fixEncoding(src.title||''); if(t&&t!==lastTitle){lastTitle=t; trackHistory.unshift({time:new Date().toLocaleTimeString(),title:t}); if(trackHistory.length>100)trackHistory.pop(); renderHistory();}
+      addHistoryPoint(src.listeners||0); estimateLatency(br,bs,st);
+    }
+  }).catch(()=>setOnline(false));
+}
+function renderHistory() { const el=document.getElementById('historyList'); if(!trackHistory.length){el.innerHTML='<div style="color:#444;padding:8px 0;font-size:0.8rem;">No tracks yet</div>';return;} el.innerHTML=trackHistory.map(t=>'<div class="history-item"><span class="time">'+t.time+'</span><span class="song">'+t.title+'</span></div>').join(''); }
+let chartCanvas=document.getElementById('listenerChart'), chartCtx=chartCanvas.getContext('2d');
+function resizeChart(){const r=chartCanvas.parentElement.getBoundingClientRect(); chartCanvas.width=chartCanvas.clientWidth||r.width-28||600; chartCanvas.height=chartCanvas.clientHeight||180;}
+function addHistoryPoint(v){listenerHistory.push(v); if(listenerHistory.length>HISTORY_POINTS)listenerHistory.shift(); drawChart();}
+function drawChart(){const w=chartCanvas.width,h=chartCanvas.height; chartCtx.clearRect(0,0,w,h); if(listenerHistory.length<2){chartCtx.fillStyle='#333';chartCtx.font='12px monospace';chartCtx.textAlign='center';chartCtx.fillText('waiting for data...',w/2,h/2);return;} const max=Math.max(1,...listenerHistory); const pad=2,barW=(w-pad*2)/HISTORY_POINTS; chartCtx.fillStyle='#0f0'; listenerHistory.forEach((v,i)=>{const bh=(v/max)*(h-pad*2);chartCtx.fillRect(pad+i*barW,h-pad-bh,Math.max(1,barW-0.5),bh);}); chartCtx.fillStyle='#444';chartCtx.font='10px monospace';chartCtx.textAlign='left';chartCtx.fillText(max+' listeners',4,12);}
+function estimateLatency(br,bs,st){const b=128000/8; const bl=Math.max(0,br-bs); let q=bl/b; const sl=parseInt(document.getElementById('lSlow').textContent)||0; if(sl>0&&q>32)q=Math.min(q,60); else if(q>32)q=32; let brw=0; if(isStreamLoaded&&audio.buffered.length>0){try{brw=Math.round((audio.buffered.end(audio.buffered.length-1)-audio.currentTime)*10)/10;}catch(e){}} document.getElementById('lagBrowser').textContent=brw?brw+'s':'(load stream)'; document.getElementById('lagQueue').textContent=q.toFixed(1)+'s'; const t=(q+brw+4).toFixed(1); const el=document.getElementById('lagTotal'), fl=document.getElementById('lagFill'); if(brw||q>0){el.textContent=t;fl.style.width=Math.min(100,t*4)+'%';}}
+function toggleStream(){const btn=document.getElementById('streamBtn'); if(isStreamLoaded){audio.pause();audio.src='';isStreamLoaded=false;btn.textContent='LOAD STREAM';}else{audio.src=STREAM_URL;audio.play().then(()=>{isStreamLoaded=true;btn.textContent='STOP STREAM';}).catch(()=>{btn.textContent='FAILED';});}}
+window.addEventListener('resize',()=>{resizeChart();drawChart();});
+setOnline(false); resizeChart(); loadHistory().then(()=>{poll(); pollTimer=setInterval(poll,POLL_INTERVAL);});
+</script>
+</body>
+</html>
