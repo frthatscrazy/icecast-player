@@ -943,19 +943,6 @@ document.querySelectorAll('.bj-chip[data-ttt]').forEach(el => {
     refreshDoubloons();
   });
 });
-});
-
-document.querySelectorAll('.bj-chip[data-ttt]').forEach(el => {
-  el.addEventListener('click', () => {
-    if (gameOver || gameBoard.some(c => c)) return;
-    const val = parseInt(el.dataset.ttt);
-    if (val > doubloons) return;
-    doubloons -= val;
-    tttBet += val;
-  gameTurnEl.textContent = 'Your move, Captain';
-    refreshDoubloons();
-  });
-});
 
 function bjRefreshChips() {
   refreshDoubloons();
