@@ -877,12 +877,11 @@ let mbFallbackTimer = null;
 function startCoverPoll() {
   stopCoverPoll();
   if (coverBlobUrl) { URL.revokeObjectURL(coverBlobUrl); coverBlobUrl = null; }
-  coverBytes = 0;
   albumArtImg.src = '';
   albumArtImg.classList.remove('loaded');
   albumArtFallback.style.display = '';
   coverInterval = setInterval(pollCover, 3000);
-  mbFallbackTimer = setTimeout(pollCoverMusicBrainz, 12000);
+  pollCoverMusicBrainz();
 }
 
 function stopCoverPoll() {
@@ -902,7 +901,6 @@ async function pollCover() {
     albumArtImg.src = coverBlobUrl;
     albumArtImg.classList.add('loaded');
     albumArtFallback.style.display = 'none';
-    if (mbFallbackTimer) { clearTimeout(mbFallbackTimer); mbFallbackTimer = null; }
   } catch (_) {}
 }
 
