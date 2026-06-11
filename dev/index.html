@@ -1933,7 +1933,8 @@ async function pollChat() {
       el.className = 'chat-msg';
       const t = new Date(m.time * 1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       const tagClass = m.name === chatName ? 'tag self' : 'tag';
-      el.innerHTML = `<span class="time">${t}</span><span class="${tagClass}">${escapeHtml(m.name)}</span>${escapeHtml(m.text)}`;
+      const dish = '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:2px"><path d="M3 20 Q12 2 21 20"/><line x1="12" y1="12" x2="12" y2="4"/><path d="M8 13 Q12 9 16 13" stroke-width="1.5" opacity="0.7"/><path d="M5 16 Q12 6 19 16" stroke-width="1.5" opacity="0.5"/></svg>';
+      el.innerHTML = `<span class="time">${t}</span>${dish}<span class="${tagClass}">${escapeHtml(m.name)}</span>${escapeHtml(m.text)}`;
       chatBox.appendChild(el);
     }
     chatBox.scrollTop = chatBox.scrollHeight;

@@ -483,7 +483,7 @@ button:active {
 
 .game-cell:hover { background: #151515; border-color: #444; }
 .game-cell.x { color: #f44; text-shadow: 0 0 8px #f44; cursor: default; }
-.game-cell.o { color: #4f4; filter: drop-shadow(0 0 6px #4f4); cursor: default; display: flex; align-items: center; justify-content: center; }
+.game-cell.o { color: #4f4; text-shadow: 0 0 8px #4f4; cursor: default; }
 .game-cell.win { background: #1a0a0a; border-color: #f44; box-shadow: 0 0 10px rgba(255,68,68,0.3); }
 .game-cell.win.o { background: #0a1a0a; border-color: #4f4; box-shadow: 0 0 10px rgba(68,255,68,0.3); }
 
@@ -988,14 +988,11 @@ gameCellEls.forEach(cell => cell.addEventListener('click', () => {
   makeMove(parseInt(cell.dataset.i));
 }));
 
-const RADAR_DISH = '<svg viewBox="0 0 24 24" width="1.2em" height="1.2em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20 Q12 2 21 20"/><line x1="12" y1="12" x2="12" y2="4"/><path d="M8 13 Q12 9 16 13" stroke-width="1.5" opacity="0.7"/><path d="M5 16 Q12 6 19 16" stroke-width="1.5" opacity="0.5"/></svg>';
-const SKULL = '☠';
-
 function makeMove(i) {
   if (gameOver || gameBoard[i]) return;
   gameBoard[i] = gameTurn;
   cell = document.querySelector(`.game-cell[data-i="${i}"]`);
-  cell.innerHTML = gameTurn === 'X' ? SKULL : RADAR_DISH;
+  cell.textContent = gameTurn === 'X' ? '☠' : '◎';
   cell.classList.add(gameTurn === 'X' ? 'x' : 'o');
   const win = checkWin(gameBoard, gameTurn);
   if (win) {
