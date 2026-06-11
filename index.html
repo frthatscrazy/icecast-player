@@ -876,7 +876,10 @@ let mbFallbackTimer = null;
 function startCoverPoll() {
   stopCoverPoll();
   if (coverBlobUrl) { URL.revokeObjectURL(coverBlobUrl); coverBlobUrl = null; }
-  coverInterval = setInterval(pollCover, 3000);
+  fetch('/cover/current.jpg?t=' + Date.now(), { cache: 'no-store' })
+    .then(r => r.ok && r.blob().then(b => { coverBytes = b.size; }))
+    .catch(() => {})
+    .finally(() => { coverInterval = setInterval(pollCover, 3000); });
   pollCoverMusicBrainz();
 }
 
