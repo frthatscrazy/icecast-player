@@ -627,32 +627,31 @@ button:active {
 .bj-chip[data-roulette="5"]  { background: #2c3e50; color: #bdc3c7; border-color: #bdc3c7; }
 .bj-chip[data-roulette="25"] { background: #6c3483; color: #d2b4de; border-color: #d2b4de; }
 .bj-chip[data-roulette="100"] { background: #922b21; color: #f5b041; border-color: #f5b041; }
-.r-result { font-size: 0.85rem; margin-bottom: 8px; min-height: 1.2em; }
-.r-grid {
+.r-result { font-size: 0.85rem; margin-bottom: 6px; min-height: 1.2em; }
+.r-wheel-wrap { text-align: center; margin: 0 auto 6px; }
+.r-wheel-canvas { display: block; margin: 0 auto; max-width: 100%; }
+.r-mini-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 3px;
-  max-width: 320px;
+  grid-template-columns: 32px repeat(3, 1fr);
+  gap: 2px;
+  max-width: 260px;
   margin: 0 auto 6px;
 }
-.r-cell {
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
+.r-mcell {
+  padding: 3px 0;
+  text-align: center;
+  font-size: 0.7rem;
   font-weight: 700;
   border: 1px solid #333;
   cursor: pointer;
   user-select: none;
-  transition: all 0.15s;
-  background: #0d0d0d;
+  transition: all 0.1s;
 }
-.r-cell:hover { border-color: #fff; filter: brightness(1.3); }
-.r-zero { background: #1a4a1a; color: #0f0; grid-column: 1 / -1; aspect-ratio: 3; }
-.r-red { color: #f44; }
-.r-black { color: #aaa; }
-.r-cell.r-selected { border-color: #ffd700; box-shadow: 0 0 8px #ffd700; }
+.r-mcell:hover { filter: brightness(1.4); }
+.r-mcell.r-zero { background: #1a4a1a; color: #0f0; }
+.r-mcell.r-red { background: #6b1111; color: #f88; }
+.r-mcell.r-black { background: #111; color: #aaa; }
+.r-mcell.r-selected { border-color: #ffd700; box-shadow: 0 0 6px #ffd700; }
 .r-specials {
   display: flex;
   flex-wrap: wrap;
@@ -832,7 +831,8 @@ footer {
   <div class="game-wrap">
     <div class="lbl">&#x1F3B0; Roulette &#x2620;</div>
     <div class="r-result" id="rResult">Place your bet, pick a number</div>
-    <div class="r-grid" id="rGrid"></div>
+    <div class="r-wheel-wrap"><canvas id="rWheel" width="220" height="220"></canvas></div>
+    <div class="r-mini-grid" id="rMiniGrid"></div>
     <div class="r-specials">
       <span class="r-special" data-r="red">RED</span>
       <span class="r-special" data-r="black">BLACK</span>
@@ -1108,82 +1108,155 @@ function bjEnd() {
 
 let rBet = 0;
 let rChoice = null;
+let rWheelAngle = 0;
+let rSpinning = false;
+let rAnimFrame = null;
 const rBetEl = document.getElementById('rBet');
 const rouletteCofferEl = document.getElementById('rouletteCoffer');
 const rResultEl = document.getElementById('rResult');
-const rGridEl = document.getElementById('rGrid');
+const rCanvas = document.getElementById('rWheel');
+const rCtx = rCanvas.getContext('2d');
+const rMiniGrid = document.getElementById('rMiniGrid');
 const rSpinBtn = document.getElementById('rSpinBtn');
 
+const R_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
 const REDS = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 
-(function buildRGrid() {
-  const zero = document.createElement('div');
-  zero.className = 'r-cell r-zero'; zero.textContent = '0'; zero.dataset.r = '0';
-  rGridEl.appendChild(zero);
-  for (let n = 1; n <= 36; n++) {
-    const c = document.createElement('div');
-    c.className = 'r-cell';
-    c.classList.add(REDS.has(n) ? 'r-red' : 'r-black');
-    c.textContent = n; c.dataset.r = n;
-    rGridEl.appendChild(c);
+(function initRoulette() {
+  const W = rCanvas.width, H = rCanvas.height;
+  const cx = W/2, cy = H/2, R = Math.min(cx,cy)-8, seg = 2*Math.PI/37;
+
+  function drawWheel(angle) {
+    const ctx = rCtx;
+    ctx.clearRect(0,0,W,H);
+    for (let i=0;i<37;i++) {
+      const s = angle + i*seg - Math.PI/2;
+      const e = s + seg;
+      const n = R_ORDER[i];
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,s,e); ctx.closePath();
+      ctx.fillStyle = n===0 ? '#1a4a1a' : REDS.has(n) ? '#8b1a1a' : '#1a1a1a';
+      ctx.fill(); ctx.strokeStyle='#333'; ctx.lineWidth=1; ctx.stroke();
+      const m = s+seg/2, tr=R*0.68;
+      ctx.save(); ctx.translate(cx+Math.cos(m)*tr, cy+Math.sin(m)*tr);
+      ctx.rotate(m+Math.PI/2);
+      ctx.fillStyle = n===0 ? '#4f4' : '#ddd';
+      ctx.font='bold 10px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(n,0,0); ctx.restore();
+    }
+    ctx.beginPath(); ctx.arc(cx,cy,R*0.14,0,2*Math.PI);
+    ctx.fillStyle='#111'; ctx.fill(); ctx.strokeStyle='#555'; ctx.lineWidth=2; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx-7,cy-R-3); ctx.lineTo(cx+7,cy-R-3); ctx.lineTo(cx,cy-R-14);
+    ctx.closePath(); ctx.fillStyle='#ffd700'; ctx.fill();
+  }
+
+  drawWheel(0);
+
+  for (let n=0;n<=36;n++) {
+    const c=document.createElement('div');
+    if (n===0) { c.className='r-mcell r-zero'; c.textContent='0'; }
+    else { c.className='r-mcell '+(REDS.has(n)?'r-red':'r-black'); c.textContent=n; }
+    c.dataset.r=n; rMiniGrid.appendChild(c);
   }
 })();
 
 document.querySelectorAll('.bj-chip[data-roulette]').forEach(el => {
   el.addEventListener('click', () => {
     if (rChoice) return;
-    const val = parseInt(el.dataset.roulette, 10) || 0;
-    if (val <= 0 || val > doubloons) return;
-    doubloons -= val;
-    rBet += val;
-    rResultEl.textContent = rBet ? 'Bet: ' + rBet + '. Pick a number or special bet' : 'Place your bet, pick a number';
+    const val = parseInt(el.dataset.roulette,10)||0;
+    if (val<=0||val>doubloons) return;
+    doubloons-=val; rBet+=val;
+    rResultEl.textContent=rBet?'Bet: '+rBet+'. Pick a number or special bet':'Place your bet, pick a number';
     refreshDoubloons();
   });
 });
 
-document.querySelectorAll('.r-cell, .r-special').forEach(el => {
-  el.addEventListener('click', () => {
-    if (rBet <= 0) { rResultEl.textContent = 'Place a bet first!'; return; }
-    document.querySelectorAll('.r-cell, .r-special').forEach(e => e.classList.remove('r-selected'));
+document.querySelectorAll('.r-mcell,.r-special').forEach(el => {
+  el.addEventListener('click',()=>{
+    if (rBet<=0){rResultEl.textContent='Place a bet first!';return;}
+    document.querySelectorAll('.r-mcell,.r-special').forEach(e=>e.classList.remove('r-selected'));
     el.classList.add('r-selected');
-    rChoice = el.dataset.r;
-    rResultEl.textContent = 'Bet on ' + rChoice + ' for ' + rBet + ' doubloons. Hit SPIN!';
+    rChoice=el.dataset.r;
+    rResultEl.textContent='Bet on '+rChoice+' for '+rBet+' doubloons. Hit SPIN!';
   });
 });
 
-rSpinBtn.addEventListener('click', () => {
-  if (rBet <= 0) { rResultEl.textContent = 'Place a bet first!'; return; }
-  if (!rChoice) { rResultEl.textContent = 'Pick a number or special bet!'; return; }
+rSpinBtn.addEventListener('click',()=>{
+  if (rBet<=0){rResultEl.textContent='Place a bet first!';return;}
+  if (!rChoice){rResultEl.textContent='Pick a number or special bet!';return;}
+  if (rSpinning) return;
+  rSpinning=true; rSpinBtn.disabled=true;
 
-  const result = Math.floor(Math.random() * 37);
-  const color = result === 0 ? 'green' : REDS.has(result) ? 'red' : 'black';
-  const parity = result === 0 ? '' : (result % 2 ? 'odd' : 'even');
-  const range = result === 0 ? '' : (result <= 18 ? '1-18' : '19-36');
+  const result=Math.floor(Math.random()*37);
+  const targetIdx=R_ORDER.indexOf(result);
+  const targetAngle=targetIdx*2*Math.PI/37;
+  const fullSpins=5+Math.floor(Math.random()*4);
+  const totalRotation=fullSpins*2*Math.PI+(2*Math.PI-targetAngle+rWheelAngle);
+  const startAngle=rWheelAngle;
+  const duration=4000+Math.random()*2000;
+  const startTime=performance.now();
 
-  let won = false;
-  if (rChoice === String(result)) won = true;
-  else if (rChoice === 'red' && color === 'red') won = true;
-  else if (rChoice === 'black' && color === 'black') won = true;
-  else if (rChoice === 'odd' && parity === 'odd') won = true;
-  else if (rChoice === 'even' && parity === 'even') won = true;
-  else if (rChoice === '1-18' && range === '1-18') won = true;
-  else if (rChoice === '19-36' && range === '19-36') won = true;
+  function animate(time){
+    const t=Math.min((time-startTime)/duration,1);
+    const ease=1-Math.pow(1-t,3);
+    rWheelAngle=startAngle+totalRotation*ease;
+    rCtx.clearRect(0,0,rCanvas.width,rCanvas.height);
+    rCtx.save(); rCtx.beginPath(); rCtx.arc(110,110,102,0,2*Math.PI); rCtx.clip();
+    (function drawWheel(angle){
+      const W=rCanvas.width,H=rCanvas.height,cx=W/2,cy=H/2,R=Math.min(cx,cy)-8,seg=2*Math.PI/37;
+      for(let i=0;i<37;i++){
+        const s=angle+i*seg-Math.PI/2,e=s+seg,n=R_ORDER[i];
+        ctx=rCtx;
+        ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,s,e);ctx.closePath();
+        ctx.fillStyle=n===0?'#1a4a1a':REDS.has(n)?'#8b1a1a':'#1a1a1a';
+        ctx.fill();ctx.strokeStyle='#333';ctx.lineWidth=1;ctx.stroke();
+        const m=s+seg/2,tr=R*0.68;
+        ctx.save();ctx.translate(cx+Math.cos(m)*tr,cy+Math.sin(m)*tr);
+        ctx.rotate(m+Math.PI/2);
+        ctx.fillStyle=n===0?'#4f4':'#ddd';
+        ctx.font='bold 10px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(n,0,0);ctx.restore();
+      }
+      ctx.beginPath();ctx.arc(cx,cy,R*0.14,0,2*Math.PI);
+      ctx.fillStyle='#111';ctx.fill();ctx.strokeStyle='#555';ctx.lineWidth=2;ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx-7,cy-R-3);ctx.lineTo(cx+7,cy-R-3);ctx.lineTo(cx,cy-R-14);
+      ctx.closePath();ctx.fillStyle='#ffd700';ctx.fill();
+    })(rWheelAngle);
+    ctx=rCtx; ctx.restore();
 
-  const bet = rBet;
-  rBet = 0; rChoice = null; refreshDoubloons();
-  document.querySelectorAll('.r-cell, .r-special').forEach(e => e.classList.remove('r-selected'));
-
-  const spinMsg = '🎲 ' + result + ' ' + color.toUpperCase();
-  if (won) {
-    const mult = String(result) === rChoice ? 35 : 1;
-    const payout = bet + bet * mult;
-    doubloons += payout;
-    refreshDoubloons();
-    rResultEl.textContent = spinMsg + '! Won ' + payout + ' doubloons! 🏴‍☠️';
-  } else {
-    rResultEl.textContent = spinMsg + '! Lost ' + bet + ' doubloons! 💀';
+    if(t<1) rAnimFrame=requestAnimationFrame(animate);
+    else {
+      rSpinning=false; rSpinBtn.disabled=false;
+      rWheelAngle%=2*Math.PI;
+      resolveRoulette(result);
+    }
   }
+  rAnimFrame=requestAnimationFrame(animate);
 });
+
+function resolveRoulette(result){
+  const color=result===0?'green':REDS.has(result)?'red':'black';
+  const parity=result===0?'':(result%2?'odd':'even');
+  const range=result===0?'':(result<=18?'1-18':'19-36');
+  let won=false;
+  if(rChoice===String(result)) won=true;
+  else if(rChoice==='red'&&color==='red') won=true;
+  else if(rChoice==='black'&&color==='black') won=true;
+  else if(rChoice==='odd'&&parity==='odd') won=true;
+  else if(rChoice==='even'&&parity==='even') won=true;
+  else if(rChoice==='1-18'&&range==='1-18') won=true;
+  else if(rChoice==='19-36'&&range==='19-36') won=true;
+  const bet=rBet; rBet=0; rChoice=null; refreshDoubloons();
+  document.querySelectorAll('.r-mcell,.r-special').forEach(e=>e.classList.remove('r-selected'));
+  const msg='🎲 '+result+' '+color.toUpperCase();
+  if(won){
+    const mult=String(result)===rChoice?35:1;
+    const payout=bet+bet*mult;
+    doubloons+=payout; refreshDoubloons();
+    rResultEl.textContent=msg+'! Won '+payout+' doubloons! 🏴‍☠️';
+  } else rResultEl.textContent=msg+'! Lost '+bet+' doubloons! 💀';
+}
 
 const messages = [
   "UNAUTHORIZED TRANSMISSION",
