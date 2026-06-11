@@ -1,0 +1,11 @@
+[Unit]
+Description=Poker server for Pirate Radio dev page
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/xeno/icecast-docker/poker_server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
