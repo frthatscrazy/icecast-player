@@ -708,6 +708,16 @@ footer {
       <div class="game-cell" data-i="8"></div>
     </div>
     <div class="game-result" id="gameResult"></div>
+    <div class="ttt-chips" style="margin:4px 0;font-size:0.8rem;display:flex;align-items:center;gap:4px;justify-content:center;flex-wrap:wrap">
+      Coffer: <span id="doubloons">500</span> &#x1FA99;
+      <span class="bj-chip-row" style="display:inline-flex">
+        <span class="bj-chip" data-ttt="1">1</span>
+        <span class="bj-chip" data-ttt="5">5</span>
+        <span class="bj-chip" data-ttt="25">25</span>
+        <span class="bj-chip" data-ttt="100">100</span>
+      </span>
+      Bet: <span id="tttBet">0</span> &#x1FA99;
+    </div>
     <button class="game-btn" onclick="resetGame()">New Game</button>
   </div>
 
@@ -715,7 +725,7 @@ footer {
     <div class="lbl">&#x1F480; Davy Jones' Blackjack &#x1F3B4;</div>
     <div class="bj-status" id="bjStatus">Place your bet, Captain</div>
     <div class="bj-chips">
-      <div class="bj-balance">Coffer: <span id="bjBalance">500</span> &#x1FA99;</div>
+      <div class="bj-balance">Coffer: <span id="doubloonsB">500</span> &#x1FA99;</div>
       <div class="bj-chip-row" id="bjChipRow">
         <span class="bj-chip" data-val="1">1</span>
         <span class="bj-chip" data-val="5">5</span>
@@ -804,14 +814,27 @@ function makeMove(i) {
   const win = checkWin(gameBoard, gameTurn);
   if (win) {
     win.forEach(idx => document.querySelector(`.game-cell[data-i="${idx}"]`).classList.add('win'));
-    gameResultEl.textContent = gameTurn === 'X' ? '🏴‍☠️ PIRATE WINS! Plunder the airwaves!' : '📡 SIGNAL DOMINATES! Tune in!';
     gameTurnEl.textContent = '';
     gameOver = true;
+    if (gameTurn === 'X') {
+      const payout = tttBet * 2;
+      doubloons += payout;
+      const bet = tttBet; tttBet = 0;
+      refreshDoubloons();
+      gameResultEl.textContent = '🏴‍☠️ PIRATE WINS! Won ' + payout + ' doubloons! Plunder the airwaves!';
+    } else {
+      const bet = tttBet; tttBet = 0;
+      refreshDoubloons();
+      gameResultEl.textContent = '📡 SIGNAL DOMINATES! Lost ' + bet + ' doubloons! Tune in!';
+    }
     return;
   }
   if (!gameBoard.includes('')) {
-    gameResultEl.textContent = 'Dead air. Nobody wins.';
     gameOver = true;
+    doubloons += tttBet;
+    const bet = tttBet; tttBet = 0;
+    refreshDoubloons();
+    gameResultEl.textContent = bet ? 'Dead air. Got ' + bet + ' doubloons back. ⚔️' : 'Dead air. Nobody wins.';
     return;
   }
   gameTurn = gameTurn === 'X' ? 'O' : 'X';
@@ -827,10 +850,15 @@ function checkWin(board, player) {
 }
 
 function resetGame() {
+  if (tttBet && !gameOver) {
+    doubloons += tttBet;
+    tttBet = 0;
+    refreshDoubloons();
+  }
   gameBoard = ['', '', '', '', '', '', '', '', ''];
   gameTurn = 'X';
   gameOver = false;
-  gameTurnEl.textContent = 'Your move, Captain';
+  gameTurnEl.textContent = tttBet ? 'Bet placed! Make your move, Captain' : 'Your move, Captain';
   gameResultEl.textContent = '';
   gameCells.forEach(cell => {
     cell.textContent = '';
@@ -857,8 +885,9 @@ let bjDeck = bjCreateDeck();
 let bjPlayer = [];
 let bjDealer = [];
 let bjGameOver = false;
-let bjBalance = 500;
+let doubloons = 500;
 let bjBet = 0;
+let tttBet = 0;
 
 const bjStatusEl = document.getElementById('bjStatus');
 const bjPlayerCardsEl = document.getElementById('bjPlayerCards');
@@ -867,25 +896,44 @@ const bjPlayerTotalEl = document.getElementById('bjPlayerTotal');
 const bjDealerTotalEl = document.getElementById('bjDealerTotal');
 const bjHitBtn = document.getElementById('bjHitBtn');
 const bjStandBtn = document.getElementById('bjStandBtn');
-const bjBalanceEl = document.getElementById('bjBalance');
+const doubloonsEl = document.getElementById('doubloons');
+const bjBalanceEl = document.getElementById('doubloonsB');
 const bjBetEl = document.getElementById('bjBet');
+const tttBetEl = document.getElementById('tttBet');
+
+function refreshDoubloons() {
+  doubloonsEl.textContent = doubloons;
+  bjBalanceEl.textContent = doubloons;
+  bjBetEl.textContent = bjBet;
+  tttBetEl.textContent = tttBet;
+}
 
 document.querySelectorAll('.bj-chip').forEach(el => {
   el.addEventListener('click', () => {
     if (bjPlayer.length && !bjGameOver) return;
     const val = parseInt(el.dataset.val);
-    if (val > bjBalance) return;
-    bjBalance -= val;
+    if (val > doubloons) return;
+    doubloons -= val;
     bjBet += val;
-    bjBalanceEl.textContent = bjBalance;
-    bjBetEl.textContent = bjBet;
+    refreshDoubloons();
     bjStatusEl.textContent = bjBet ? 'Bet placed! Hit DEAL when ready.' : 'Place your bet, Captain';
   });
 });
 
+document.querySelectorAll('.bj-chip[data-ttt]').forEach(el => {
+  el.addEventListener('click', () => {
+    if (gameOver || gameBoard.some(c => c)) return;
+    const val = parseInt(el.dataset.ttt);
+    if (val > doubloons) return;
+    doubloons -= val;
+    tttBet += val;
+    gameTurnEl.textContent = tttBet ? 'Bet placed! Make your move, Captain' : 'Your move, Captain';
+    refreshDoubloons();
+  });
+});
+
 function bjRefreshChips() {
-  bjBalanceEl.textContent = bjBalance;
-  bjBetEl.textContent = bjBet;
+  refreshDoubloons();
 }
 
 function bjVal(hand) {
@@ -922,9 +970,10 @@ function bjDeal() {
     bjGameOver = true; bjHitBtn.disabled = true; bjStandBtn.disabled = true;
     const dealerBj = bjVal(bjDealer) === 21;
     bjRender(false);
-    const bet = bjBet; bjBet = 0; bjBetEl.textContent = 0;
-    if (dealerBj) { bjBalance += bet; bjBalanceEl.textContent = bjBalance; bjStatusEl.textContent = 'Both blackjack! Push! Got ' + bet + ' doubloons back! ⚔️'; }
-    else { const w = bet + Math.floor(bet * 1.5); bjBalance += w; bjBalanceEl.textContent = bjBalance; bjStatusEl.textContent = 'BLACKJACK! 3:2 payout! Won ' + w + ' doubloons! 🏴‍☠️'; }
+    const bet = bjBet; bjBet = 0; refreshDoubloons();
+    if (dealerBj) { doubloons += bet; bjStatusEl.textContent = 'Both blackjack! Push! Got ' + bet + ' doubloons back! ⚔️'; }
+    else { const w = bet + Math.floor(bet * 1.5); doubloons += w; bjStatusEl.textContent = 'BLACKJACK! 3:2 payout! Won ' + w + ' doubloons! 🏴‍☠️'; }
+    refreshDoubloons();
   }
 }
 
@@ -950,12 +999,12 @@ function bjEnd() {
   const dv = bjVal(bjDealer);
   const bet = bjBet;
   bjBet = 0;
-  bjBetEl.textContent = 0;
+  refreshDoubloons();
   if (pv > 21) { bjStatusEl.textContent = 'BUST! Lost ' + bet + ' doubloons! Davy Jones claims another soul! 💀'; return; }
-  if (dv > 21) { bjBalance += bet * 2; bjBalanceEl.textContent = bjBalance; bjStatusEl.textContent = 'Davy Jones busts! Won ' + (bet*2) + ' doubloons! 🏴‍☠️'; return; }
-  if (pv > dv) { bjBalance += bet * 2; bjBalanceEl.textContent = bjBalance; bjStatusEl.textContent = 'Captain wins! Won ' + (bet*2) + ' doubloons! 🏴‍☠️'; return; }
+  if (dv > 21) { doubloons += bet * 2; bjStatusEl.textContent = 'Davy Jones busts! Won ' + (bet*2) + ' doubloons! 🏴‍☠️'; refreshDoubloons(); return; }
+  if (pv > dv) { doubloons += bet * 2; bjStatusEl.textContent = 'Captain wins! Won ' + (bet*2) + ' doubloons! 🏴‍☠️'; refreshDoubloons(); return; }
   if (pv < dv) { bjStatusEl.textContent = 'Davy Jones wins! Lost ' + bet + ' doubloons! Walk the plank! 💀'; return; }
-  bjBalance += bet; bjBalanceEl.textContent = bjBalance; bjStatusEl.textContent = 'Push! Got ' + bet + ' doubloons back! ⚔️';
+  doubloons += bet; bjStatusEl.textContent = 'Push! Got ' + bet + ' doubloons back! ⚔️'; refreshDoubloons();
 }
 
 const messages = [
