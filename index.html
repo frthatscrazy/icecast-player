@@ -715,13 +715,20 @@ footer {
   line-height: 1.4;
 }
 
-@media (max-width: 600px) {
-  h1 { font-size: 1.8rem; letter-spacing: 3px; }
-  .container { width: 95%; padding: 16px; }
-  .segment { margin-right: 20px; }
-  .marquee-container { font-size: 1rem; }
-}
-</style>
+  @media (max-width: 600px) {
+   h1 { font-size: 1.8rem; letter-spacing: 3px; }
+   .container { width: 95%; padding: 16px; }
+   .segment { margin-right: 20px; }
+   .marquee-container { font-size: 1rem; }
+ }
+
+ @media (min-width: 960px) {
+   .container { max-width: 1200px; width: 92%; }
+   .games-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+   .games-grid .game-wrap { flex: 1; min-width: 320px; margin-top: 0; }
+   .album-art-wrap { width: min(400px, 55vh); }
+ }
+ </style>
 </head>
 <body>
 
@@ -783,6 +790,7 @@ footer {
     <div id="historyList"><div class="history-empty">No tracks yet</div></div>
   </div>
 
+  <div class="games-grid">
   <div class="game-wrap">
     <div class="lbl">&#x2620; Pirate vs Signal &#x2622;</div>
     <div class="game-turn" id="gameTurn">Your move, Captain</div>
@@ -812,7 +820,7 @@ footer {
   </div>
 
   <div class="wallet-wrap">
-    &#x2620; COFFER: <span id="doubloons">500</span> &#x1FA99;
+    &#x2620; COFFER: <span id="doubloons">1000</span> &#x1FA99;
   </div>
 
   <div class="game-wrap">
@@ -867,9 +875,10 @@ footer {
         <span class="bj-chip" data-roulette="25">25</span>
         <span class="bj-chip" data-roulette="100">100</span>
       </div>
-      <div class="bj-bet">Bet: <span id="rBet">0</span> &#x1FA99;  | Coffer: <span id="rouletteCoffer">500</span> &#x1FA99;</div>
+      <div class="bj-bet">Bet: <span id="rBet">0</span> &#x1FA99;  | Coffer: <span id="rouletteCoffer">1000</span> &#x1FA99;</div>
     </div>
     <button class="r-spin" id="rSpinBtn">SPIN</button>
+  </div>
   </div>
 
   <footer>
@@ -1210,7 +1219,7 @@ let bjDeck = bjCreateDeck();
 let bjPlayer = [];
 let bjDealer = [];
 let bjGameOver = false;
-let doubloons = 500;
+let doubloons = 1000;
 let bjBet = 0;
 let tttBet = 0;
 
@@ -1771,10 +1780,18 @@ let mbFallbackTimer = null;
 function startCoverPoll() {
   stopCoverPoll();
   if (coverBlobUrl) { URL.revokeObjectURL(coverBlobUrl); coverBlobUrl = null; }
+  coverBytes = 0;
   fetch('/cover/current.jpg?t=' + Date.now(), { cache: 'no-store' })
-    .then(r => r.ok && r.blob().then(b => { coverBytes = b.size; }))
-    .catch(() => {})
-    .finally(() => { coverInterval = setInterval(pollCover, 3000); });
+    .then(r => { if (!r.ok) throw Error(); return r.blob(); })
+    .then(b => {
+      coverBytes = b.size;
+      coverBlobUrl = URL.createObjectURL(b);
+      albumArtImg.src = coverBlobUrl;
+      albumArtImg.classList.add('loaded');
+      albumArtFallback.style.display = 'none';
+    })
+    .catch(() => {});
+  coverInterval = setInterval(pollCover, 3000);
   pollCoverMusicBrainz();
 }
 
@@ -1810,7 +1827,8 @@ async function pollCoverMusicBrainz() {
   artCache[title] = null;
   try {
     const res = await fetch(
-      `https://musicbrainz.org/ws/2/recording/?fmt=json&query=${encodeURIComponent(title)}&limit=3`
+      `https://musicbrainz.org/ws/2/recording/?fmt=json&query=${encodeURIComponent(title)}&limit=3`,
+      { headers: { 'User-Agent': 'PirateRadio/1.0 (birdhau5radio.org)' } }
     );
     console.log('[MB] musicbrainz status:', res.status);
     if (!res.ok) { console.log('[MB] musicbrainz not ok'); return; }
